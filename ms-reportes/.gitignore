@@ -1,0 +1,69 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+*.vscode/
+.DS_Store
+*.swp
+*.swo
+*~
+.classpath
+.project
+.settings/
+bin/
+
+# Build
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Spring Boot
+application*.properties.local
+application*.yml.local
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Gradle (if also using)
+.gradle/
+build/
+
+# Node (if applicable)
+node_modules/
+npm-debug.log
+
+# Database
+*.db
+*.sqlite

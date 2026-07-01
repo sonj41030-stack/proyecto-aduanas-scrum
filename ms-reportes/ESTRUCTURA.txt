@@ -1,0 +1,90 @@
+ms-reportes/
+│
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/proyecto/aduanas/msreportes/
+│   │   │       ├── controller/
+│   │   │       │   └── ReporteController.java
+│   │   │       ├── dto/
+│   │   │       │   ├── ReporteRequestDTO.java
+│   │   │       │   └── ReporteResponseDTO.java
+│   │   │       ├── entity/
+│   │   │       │   ├── Reporte.java
+│   │   │       │   ├── Prioridad.java
+│   │   │       │   └── EstadoReporte.java
+│   │   │       ├── repository/
+│   │   │       │   └── ReporteRepository.java
+│   │   │       ├── service/
+│   │   │       │   ├── ReporteService.java
+│   │   │       │   └── impl/
+│   │   │       │       └── ReporteServiceImpl.java
+│   │   │       └── MsReportesApplication.java
+│   │   │
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── application-dev.properties
+│   │
+│   └── test/
+│       └── java/
+│           └── com/proyecto/aduanas/msreportes/
+│               └── (Test classes)
+│
+├── sql/
+│   └── schema.sql              # Scripts de creación de BD
+│
+├── pom.xml                      # Configuración Maven
+├── .gitignore                   # Archivo de exclusiones Git
+└── README.md                    # Documentación
+
+CAPAS DEL MICROSERVICIO:
+
+1. CONTROLLER (ReporteController.java)
+   - Define los endpoints REST
+   - Maneja las peticiones HTTP
+   - Valida los datos de entrada
+
+2. SERVICE (ReporteService.java / ReporteServiceImpl.java)
+   - Contiene la lógica de negocio
+   - Realiza operaciones CRUD
+   - Maneja transacciones
+   - Mapea entidades a DTOs
+
+3. REPOSITORY (ReporteRepository.java)
+   - Acceso a datos con Spring Data JPA
+   - Consultas personalizadas con @Query
+   - Métodos derivados de nombres
+
+4. ENTITY (Reporte.java)
+   - Representación de la tabla en BD
+   - Mapeo ORM con JPA
+   - Anotaciones @PrePersist y @PreUpdate
+
+5. DTO (ReporteRequestDTO.java / ReporteResponseDTO.java)
+   - Transferencia de datos entre capas
+   - Validación con Jakarta Validation
+   - Separación entre modelo interno y API
+
+FLUJO DE UNA PETICIÓN:
+
+1. Cliente HTTP → POST /api/v1/reportes
+2. ReporteController.crearReporte() recibe la petición
+3. Valida el ReporteRequestDTO
+4. Llama a ReporteService.crearReporte()
+5. El servicio crea la entidad Reporte
+6. ReporteRepository.save() persiste en BD
+7. Mapea la entidad a ReporteResponseDTO
+8. Retorna la respuesta al cliente
+
+ESTADOS DE REPORTE:
+- PENDIENTE: Recién creado
+- EN_REVISION: Siendo revisado
+- APROBADO: Aprobado
+- RECHAZADO: No aprobado
+- CERRADO: Completado
+
+PRIORIDADES:
+- BAJA: Mantenimiento no urgente
+- MEDIA: Reparación moderada (como en la imagen)
+- ALTA: Reparación importante
+- CRITICA: Falla crítica del vehículo
