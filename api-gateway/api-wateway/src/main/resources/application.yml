@@ -1,0 +1,7 @@
+server:
+  port: 8080
+
+services:
+  auth: http://localhost:8081
+  tramites: http://localhost:8082
+  reportes: http://localhost:8083
