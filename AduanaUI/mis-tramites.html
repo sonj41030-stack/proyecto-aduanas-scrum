@@ -1,0 +1,10 @@
+<!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Mis Trámites</title><style>
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;display:flex;background:#f4f6f9}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.alto .top,.alto .card{border:2px solid #000}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}button{background:#f0a500;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}}
+</style></head><body><div class='side'><h2>Sistema Aduanero</h2><a href='panel.html'>🏠 Panel</a><a href='vehiculos.html'>🚗 Vehículos</a><a href='menores.html'>👶 Menores</a><a href='sag.html'>🌿 SAG</a><a href='dashboard.html'>📊 Dashboard</a><a href='mis-tramites.html'><b>📋 Mis Trámites</b></a></div><div class='main'><div class='top'><h2>📋 Mis Trámites</h2><button onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button></div><div class='card'><table><thead><tr><th>Módulo</th><th>Detalle</th><th>Estado</th></tr></thead><tbody id='tb'></tbody></table></div></div><script>
+const tb=document.getElementById('tb');
+function add(mod,txt){tb.innerHTML+=`<tr><td>${mod}</td><td>${txt}</td><td>Registrado</td></tr>`;}
+(JSON.parse(localStorage.getItem('vehiculos')||'[]')).forEach(v=>add('Vehículo',v.patente||v.n||'Registro'));
+(JSON.parse(localStorage.getItem('menores')||'[]')).forEach(m=>add('Menor',m.n||m.nombre||'Registro'));
+(JSON.parse(localStorage.getItem('sag')||'[]')).forEach(s=>add('SAG',s.n||s.nom||'Declaración'));
+if(tb.innerHTML==='')tb.innerHTML="<tr><td colspan='3'>No existen trámites registrados.</td></tr>";
+</script></body></html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel principal del pasajero — Sistema Aduanero Digital">
+    <title>Panel Principal — Sistema Aduanero Digital</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: #f4f6f9;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #0a3d6b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar-logo {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0a500;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-text {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .sidebar-logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex: 1;
+        }
+
+        .nav-seccion {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 1rem 1.5rem 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 1.5rem;
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.08);
+            color: white;
+        }
+
+        .nav-link.activo {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border-left-color: #f0a500;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-cerrar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            padding: 8px 0;
+        }
+
+        .btn-cerrar:hover { color: white; }
+
+        .contenido {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #d0dce8;
+        }
+
+        .topbar-saludo h2 {
+            font-size: 1.1rem;
+            color: #1a2e4a;
+            font-weight: 600;
+        }
+
+        .topbar-saludo p {
+            font-size: 13px;
+            color: #6c7a8a;
+            margin-top: 2px;
+        }
+
+        .topbar-derecha {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #0a3d6b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .grid-resumen {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .resumen-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #d0dce8;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .resumen-icono {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .resumen-info p {
+            font-size: 12px;
+            color: #6c7a8a;
+            margin-bottom: 4px;
+        }
+
+        .resumen-info strong {
+            font-size: 1.4rem;
+            color: #1a2e4a;
+            font-weight: 700;
+        }
+
+        .seccion-titulo {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a2e4a;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 1rem;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #0a3d6b;
+            display: inline-block;
+        }
+
+        .grid-modulos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .modulo-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #d0dce8;
+            padding: 1.5rem;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .modulo-card:hover {
+            border-color: #0a3d6b;
+            box-shadow: 0 4px 16px rgba(10,61,107,0.12);
+            transform: translateY(-2px);
+        }
+
+        .modulo-icono {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .modulo-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a2e4a;
+        }
+
+        .modulo-card p {
+            font-size: 13px;
+            color: #6c7a8a;
+            line-height: 1.5;
+        }
+
+        .modulo-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            margin-top: auto;
+            width: fit-content;
+        }
+
+        .badge-azul     { background: #e0eaf8; color: #0a3d6b; }
+        .badge-verde    { background: #e6f7ee; color: #1a9e5a; }
+        .badge-amarillo { background: #fff8e6; color: #b85c00; }
+        .badge-rojo     { background: #fde8e8; color: #c0392b; }
+
+        .pdi-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #d0dce8;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pdi-estado {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a9e5a;
+        }
+
+        .pdi-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #1a9e5a;
+        }
+
+        :focus {
+            outline: 3px solid #f0a500;
+            outline-offset: 2px;
+        }
+
+        @media (prefers-contrast: high) {
+            body { background: #ffffff; }
+            .sidebar { background: #000000; border-right: 2px solid #ffffff; }
+            .modulo-card { border: 2px solid #000000; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
+
+        body.alto-contraste { background: #ffffff; }
+        body.alto-contraste .sidebar { background: #000000; }
+        body.alto-contraste .modulo-card { border: 2px solid #000000; }
+        body.alto-contraste .topbar { border: 2px solid #000000; }
+        body.alto-contraste .resumen-card { border: 2px solid #000000; }
+        body.alto-contraste .pdi-card { border: 2px solid #000000; }
+
+        .btn-contraste {
+            background: #f0a500;
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar" role="navigation" aria-label="Menú principal">
+
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24"
+                     fill="none" stroke="white" stroke-width="2">
+                    <path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/>
+                    <path d="M12 3v18M3 7l9 4 9-4"/>
+                </svg>
+            </div>
+            <div class="sidebar-logo-text">
+                Sistema Aduanero
+                <span>Digital · Chile</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-seccion">Principal</div>
+            <a href="panel.html" class="nav-link activo" aria-current="page">
+                🏠 Panel principal
+            </a>
+
+            <div class="nav-seccion">Trámites</div>
+            <a href="vehiculos.html" class="nav-link">🚗 Ingreso de vehículos</a>
+            <a href="menores.html" class="nav-link">👶 Menores de edad</a>
+            <a href="sag.html" class="nav-link">🌿 SAG alimentos y mascotas</a>
+
+            <div class="nav-seccion">Integración</div>
+            <a href="#" class="nav-link">🛡 Estado PDI</a>
+            <a href="#" class="nav-link">📋 Mis trámites</a>
+
+            <div class="nav-seccion">Reportes</div>
+            <a href="dashboard.html" class="nav-link">📊 Dashboard estadísticas</a>
+            <a href="#" class="nav-link">📄 Reporte PDF ingresos</a>
+            <a href="#" class="nav-link">📊 Reporte Excel egresos</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-cerrar"
+                    onclick="cerrarSesion()"
+                    aria-label="Cerrar sesión del sistema">
+                🚪 Cerrar sesión
+            </button>
+        </div>
+
+    </aside>
+
+    <main class="contenido" role="main">
+
+        <div class="topbar">
+            <div class="topbar-saludo">
+                <h2 id="saludo-nombre">👋 Bienvenido...</h2>
+                <p id="fecha-texto">Cargando...</p>
+            </div>
+            <div class="topbar-derecha">
+                <button class="btn-contraste"
+                        onclick="toggleContraste()"
+                        aria-label="Activar modo alto contraste">
+                    👁 Alto contraste
+                </button>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="avatar" id="avatar-iniciales">?</div>
+                    <span style="font-size:14px;color:#1a2e4a;font-weight:500;"
+                          id="nombre-topbar">Usuario</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-resumen" role="region" aria-label="Resumen de trámites">
+            <div class="resumen-card">
+                <div class="resumen-icono" style="background:#e0eaf8;">🚗</div>
+                <div class="resumen-info">
+                    <p>Vehículos registrados</p>
+                    <strong>2</strong>
+                </div>
+            </div>
+            <div class="resumen-card">
+                <div class="resumen-icono" style="background:#e6f7ee;">✅</div>
+                <div class="resumen-info">
+                    <p>Trámites completados</p>
+                    <strong>5</strong>
+                </div>
+            </div>
+            <div class="resumen-card">
+                <div class="resumen-icono" style="background:#fff8e6;">⏳</div>
+                <div class="resumen-info">
+                    <p>Trámites pendientes</p>
+                    <strong>1</strong>
+                </div>
+            </div>
+            <div class="resumen-card">
+                <div class="resumen-icono" style="background:#f0eaff;">🛡</div>
+                <div class="resumen-info">
+                    <p>Estado PDI</p>
+                    <strong style="font-size:1rem;color:#1a9e5a;">✅ Habilitado</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="pdi-card" role="status" aria-label="Estado PDI">
+            <div style="font-size:2rem;" aria-hidden="true">🛡</div>
+            <div>
+                <div class="pdi-estado">
+                    <div class="pdi-dot"></div>
+                    PDI — Estado migratorio: Habilitado para cruzar
+                </div>
+                <p style="font-size:13px;color:#6c7a8a;margin-top:4px;">
+                    Integración en tiempo real con Policía de Investigaciones de Chile.
+                    Última verificación: hoy
+                </p>
+            </div>
+        </div>
+
+        <div class="seccion-titulo">Módulos disponibles</div>
+
+        <div class="grid-modulos" role="region" aria-label="Módulos del sistema">
+
+            <a href="vehiculos.html" class="modulo-card">
+                <div class="modulo-icono" style="background:#e0eaf8;">🚗</div>
+                <h3>Ingreso de vehículos</h3>
+                <p>Registra la salida temporal de tu vehículo.
+                   Acuerdo Chile-Argentina hasta 180 días.
+                   Diplomáticos hasta 90 días.</p>
+                <span class="modulo-badge badge-azul">🚗 Vehículos</span>
+            </a>
+
+            <a href="menores.html" class="modulo-card">
+                <div class="modulo-icono" style="background:#fff8e6;">👶</div>
+                <h3>Menores de edad</h3>
+                <p>Registra a menores que viajan solos o con
+                   un padre. Incluye autorización notarial
+                   y validación de documentos.</p>
+                <span class="modulo-badge badge-amarillo">👶 Menores</span>
+            </a>
+
+            <a href="sag.html" class="modulo-card">
+                <div class="modulo-icono" style="background:#e6f7ee;">🌿</div>
+                <h3>SAG alimentos y mascotas</h3>
+                <p>Declaración jurada de alimentos, frutas,
+                   verduras y mascotas. Control sanitario
+                   en frontera.</p>
+                <span class="modulo-badge badge-verde">🌿 SAG</span>
+            </a>
+
+            <a href="dashboard.html" class="modulo-card">
+                <div class="modulo-icono" style="background:#f0eaff;">📊</div>
+                <h3>Dashboard estadísticas</h3>
+                <p>Visualiza ingresos y egresos en tiempo real.
+                   Genera reportes en PDF y Excel para
+                   toma de decisiones.</p>
+                <span class="modulo-badge badge-azul">📊 Reportes</span>
+            </a>
+
+            <a href="#" class="modulo-card">
+                <div class="modulo-icono" style="background:#fde8e8;">📋</div>
+                <h3>Mis trámites</h3>
+                <p>Revisa el estado de todos tus trámites
+                   activos, pendientes y completados
+                   en el sistema.</p>
+                <span class="modulo-badge badge-rojo">⏳ En desarrollo</span>
+            </a>
+
+            <a href="#" class="modulo-card">
+                <div class="modulo-icono" style="background:#e6f7ee;">🛡</div>
+                <h3>Estado PDI</h3>
+                <p>Consulta tu estado migratorio en tiempo
+                   real. Integración directa con PDI
+                   sin duplicar datos.</p>
+                <span class="modulo-badge badge-verde">🛡 PDI</span>
+            </a>
+
+        </div>
+
+    </main>
+
+    <script>
+
+        // ── Cargar nombre desde localStorage ──
+        var nombre   = localStorage.getItem('nombre')   || 'Juan Pérez';
+        var username = localStorage.getItem('username') || '12.345.678-9';
+        var rol      = localStorage.getItem('rol')      || 'PASAJERO';
+
+        // Saludo con nombre real
+        document.getElementById('saludo-nombre').textContent = '👋 Bienvenido, ' + nombre;
+        document.getElementById('nombre-topbar').textContent = nombre;
+
+        // Iniciales del avatar
+        var partes = nombre.split(' ');
+        var iniciales = partes.length >= 2
+            ? partes[0][0] + partes[1][0]
+            : partes[0][0];
+        document.getElementById('avatar-iniciales').textContent = iniciales.toUpperCase();
+
+        // Fecha actual
+        var fecha = new Date();
+        var opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        var fechaTexto = fecha.toLocaleDateString('es-CL', opciones);
+        document.getElementById('fecha-texto').textContent = rol + ' · ' + fechaTexto;
+
+        // ── Alto contraste ──
+        function toggleContraste() {
+            document.body.classList.toggle('alto-contraste');
+        }
+
+        // ── Cerrar sesión ──
+        function cerrarSesion() {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                localStorage.removeItem('nombre');
+                localStorage.removeItem('username');
+                localStorage.removeItem('rol');
+                localStorage.removeItem('correo');
+                window.location.href = 'aduana.html';
+            }
+        }
+
+    </script>
+
+</body>
+</html>

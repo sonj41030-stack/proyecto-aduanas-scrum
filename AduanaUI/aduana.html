@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema digital de gestión aduanera, Servicio Nacional de Aduanas de Chile">
+    <title>Sistema Aduanero Digital — Servicio Nacional de Aduanas Chile</title>
+
+    <style>
+
+        /* ── RESETEO BASE ── */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        /* ── FONDO AZUL ADUANAS ── */
+        body {
+            background: #0a3d6b;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ── ACCESIBILIDAD: navegación con teclado ── */
+        :focus {
+            outline: 3px solid #f0a500;
+            outline-offset: 2px;
+        }
+
+        /* ── ACCESIBILIDAD: modo alto contraste ── */
+        @media (prefers-contrast: high) {
+            body { background: #000000; }
+            .login-card { background: #ffffff; border: 3px solid #ffffff; }
+            .form-group input { border: 2px solid #000000; }
+        }
+
+        /* ── ACCESIBILIDAD: reducir movimiento ── */
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
+
+        /* ── ACCESIBILIDAD: modo oscuro ── */
+        @media (prefers-color-scheme: dark) {
+            .login-card { background: #1a1a2e; color: #ffffff; }
+            .form-group label { color: #e0e0e0; }
+            .form-group input {
+                background: #2a2a3e;
+                color: #ffffff;
+                border-color: #4a4a6a;
+            }
+        }
+
+        /* ── TARJETA BLANCA ── */
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* ── LOGO ── */
+        .logo-circle {
+            width: 64px;
+            height: 64px;
+            background: #0a3d6b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo-area h1 {
+            font-size: 18px;
+            color: #1a2e4a;
+            font-weight: 600;
+        }
+
+        .logo-area p {
+            font-size: 13px;
+            color: #6c7a8a;
+            margin-top: 4px;
+        }
+
+        /* ── FORMULARIO ── */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a2e4a;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0dce8;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #0a3d6b;
+        }
+
+        /* ── BOTÓN PRINCIPAL ── */
+        .btn-login {
+            background: #0a3d6b;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            padding: 12px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background: #0d4e87;
+        }
+
+        /* ── MENSAJES ── */
+        .alerta {
+            background: #fde8e8;
+            border-left: 4px solid #c0392b;
+            color: #000000;
+            padding: 10px 14px;
+            font-size: 14px;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .exito {
+            background: #e6f7ee;
+            border-left: 4px solid #1a9e5a;
+            color: #000000;
+            padding: 10px 14px;
+            font-size: 14px;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            display: none;
+        }
+
+        /* ── LINKS DE AYUDA ── */
+        .ayuda {
+            text-align: center;
+            font-size: 13px;
+            color: #6c7a8a;
+            margin-top: 1rem;
+        }
+
+        .ayuda a {
+            color: #0a3d6b;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .ayuda a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── BOTÓN ALTO CONTRASTE ── */
+        .btn-contraste {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #f0a500;
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* ── ALTO CONTRASTE MANUAL ── */
+        body.alto-contraste { background: #000000; }
+        body.alto-contraste .login-card {
+            background: #ffffff;
+            border: 3px solid #000000;
+        }
+        body.alto-contraste .form-group input {
+            border: 2px solid #000000;
+            background: #ffffff;
+            color: #000000;
+        }
+        body.alto-contraste .btn-login {
+            background: #000000;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Botón alto contraste -->
+    <button
+        class="btn-contraste"
+        onclick="toggleContraste()"
+        aria-label="Activar modo alto contraste">
+        👁 Alto contraste
+    </button>
+
+    <main role="main">
+        <div class="login-card">
+
+            <!-- Logo -->
+            <div class="logo-area">
+                <div class="logo-circle" aria-hidden="true">
+                    <svg width="32" height="32" viewBox="0 0 24 24"
+                         fill="none" stroke="white" stroke-width="1.8">
+                        <path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/>
+                        <path d="M12 3v18M3 7l9 4 9-4"/>
+                    </svg>
+                </div>
+                <h1>Sistema Aduanero Digital</h1>
+                <p>Ingresa con tu cuenta habilitada</p>
+            </div>
+
+            <!-- Mensaje de error -->
+            <div class="alerta" id="alerta" role="alert" aria-live="polite">
+                ⚠️ <span id="alerta-texto"></span>
+            </div>
+
+            <!-- Mensaje de éxito -->
+            <div class="exito" id="exito" role="alert" aria-live="polite">
+                ✅ Bienvenido al sistema. Redirigiendo...
+            </div>
+
+            <!-- Formulario -->
+            <form aria-label="Formulario de inicio de sesión" onsubmit="return false">
+
+                <div class="form-group">
+                    <label for="documento">Documento de identidad</label>
+                    <select
+                        id="tipo-doc"
+                        aria-label="Tipo de documento"
+                        style="width:100%;padding:10px 12px;border:1px solid #d0dce8;
+                               border-radius:8px;font-size:15px;margin-bottom:8px;
+                               outline:none;background:white;">
+                        <option value="">Selecciona tu tipo de documento</option>
+                        <option value="rut">🇨🇱 RUT — Chile</option>
+                        <option value="dni-arg">🇦🇷 DNI — Argentina</option>
+                        <option value="dni-per">🇵🇪 DNI — Perú</option>
+                        <option value="ci-bol">🇧🇴 Cédula — Bolivia</option>
+                        <option value="ci-col">🇨🇴 Cédula — Colombia</option>
+                        <option value="cpf">🇧🇷 CPF — Brasil</option>
+                        <option value="pasaporte">🌎 Pasaporte — Otro país</option>
+                    </select>
+                    <input
+                        type="text"
+                        id="numero-doc"
+                        placeholder="Número de documento"
+                        aria-required="true"
+                        aria-describedby="doc-ayuda">
+                    <small id="doc-ayuda" style="color:#6c7a8a;font-size:12px;">
+                        RUT: 12.345.678-9 · DNI: solo números · Pasaporte: tal como aparece
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="pass">Contraseña</label>
+                    <input
+                        type="password"
+                        id="pass"
+                        name="pass"
+                        placeholder="••••••••"
+                        autocomplete="current-password"
+                        aria-required="true">
+                </div>
+
+                <button
+                    class="btn-login"
+                    type="button"
+                    onclick="intentarLogin()"
+                    aria-label="Iniciar sesión en el Sistema Aduanero Digital">
+                    Iniciar sesión
+                </button>
+
+            </form>
+
+            <div class="ayuda">
+                ¿No tienes cuenta?
+                <a href="registro.html"
+                   aria-label="Crear cuenta nueva">
+                   Crear cuenta
+                </a>
+            </div>
+            <div class="ayuda" style="margin-top: 6px;">
+                <a href="#"
+                   aria-label="Recuperar contraseña olvidada">
+                   ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+
+        // ── Cambiar placeholder según tipo de documento ──
+        document.getElementById('tipo-doc').addEventListener('change', function() {
+            var input = document.getElementById('numero-doc');
+            var ayuda = document.getElementById('doc-ayuda');
+
+            switch(this.value) {
+                case 'rut':
+                    input.placeholder = '12.345.678-9';
+                    ayuda.textContent = 'Ingresa tu RUT con puntos y guión';
+                    break;
+                case 'dni-arg':
+                case 'dni-per':
+                    input.placeholder = '12345678';
+                    ayuda.textContent = 'Ingresa tu DNI solo con números';
+                    break;
+                case 'ci-bol':
+                case 'ci-col':
+                    input.placeholder = '1234567';
+                    ayuda.textContent = 'Ingresa tu cédula de identidad';
+                    break;
+                case 'cpf':
+                    input.placeholder = '123.456.789-00';
+                    ayuda.textContent = 'Ingresa tu CPF con puntos y guión';
+                    break;
+                case 'pasaporte':
+                    input.placeholder = 'AB123456';
+                    ayuda.textContent = 'Ingresa tu número de pasaporte tal como aparece';
+                    break;
+                default:
+                    input.placeholder = 'Número de documento';
+                    ayuda.textContent = 'RUT: 12.345.678-9 · DNI: solo números · Pasaporte: tal como aparece';
+            }
+        });
+
+        // ── Validar y procesar login ──
+        function intentarLogin() {
+            var tipoDoc = document.getElementById('tipo-doc').value;
+            var numDoc  = document.getElementById('numero-doc').value.trim();
+            var pass    = document.getElementById('pass').value.trim();
+            var alerta  = document.getElementById('alerta');
+            var exito   = document.getElementById('exito');
+            var alertaTexto = document.getElementById('alerta-texto');
+
+            // Ocultar mensajes anteriores
+            alerta.style.display = 'none';
+            exito.style.display  = 'none';
+
+            // Validar que todos los campos estén completos
+            if (!tipoDoc) {
+                alertaTexto.textContent = 'Por favor selecciona tu tipo de documento.';
+                alerta.style.display = 'block';
+                return;
+            }
+
+            if (!numDoc) {
+                alertaTexto.textContent = 'Por favor ingresa tu número de documento.';
+                alerta.style.display = 'block';
+                return;
+            }
+
+            if (!pass) {
+                alertaTexto.textContent = 'Por favor ingresa tu contraseña.';
+                alerta.style.display = 'block';
+                return;
+            }
+
+            var credenciales = [
+                { tipo: 'rut',      doc: '12.345.678-9', pass: '1234' },
+                { tipo: 'rut',      doc: '20.418.441-0', pass: 'Chelseagrin666' },
+                { tipo: 'dni-arg',  doc: '12345678',     pass: '1234' },
+                { tipo: 'pasaporte',doc: 'AB123456',     pass: '1234' }
+            ];
+
+            var encontrado = credenciales.find(function(c) {
+                return c.tipo === tipoDoc && c.doc === numDoc && c.pass === pass;
+            });
+
+            if (encontrado) {
+                exito.style.display = 'block';
+                // Redirigir al panel después de 1 segundo
+                setTimeout(function() {
+                    window.location.href = 'panel.html';
+                }, 1000);
+            } else {
+                alertaTexto.textContent = 'Documento o contraseña incorrectos. Intenta de nuevo.';
+                alerta.style.display = 'block';
+            }
+        }
+        function toggleContraste() {
+            document.body.classList.toggle('alto-contraste');
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                intentarLogin();
+            }
+        });
+
+    </script>
+
+</body>
+</html>

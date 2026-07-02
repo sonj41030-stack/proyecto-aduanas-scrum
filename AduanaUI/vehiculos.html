@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ingreso de vehículos — Sistema Aduanero Digital">
+    <title>Ingreso de vehículos — Sistema Aduanero Digital</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh;
+            background: #f4f6f9;
+        }
+
+        /* ── SIDEBAR (idéntico a panel.html) ── */
+        .sidebar {
+            width: 260px;
+            background: #0a3d6b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .sidebar-logo {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0a500;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-text {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .sidebar-logo-text span {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .sidebar-nav { padding: 1rem 0; flex: 1; }
+
+        .nav-seccion {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 1rem 1.5rem 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 1.5rem;
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover { background: rgba(255,255,255,0.08); color: white; }
+
+        .nav-link.activo {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            border-left-color: #f0a500;
+            font-weight: 600;
+        }
+
+        .sidebar-footer { padding: 1rem 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); }
+
+        .btn-cerrar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            width: 100%;
+            padding: 8px 0;
+        }
+
+        .btn-cerrar:hover { color: white; }
+
+        .contenido { margin-left: 260px; flex: 1; padding: 2rem; }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #d0dce8;
+        }
+
+        .topbar-saludo h2 { font-size: 1.1rem; color: #1a2e4a; font-weight: 600; }
+        .topbar-saludo p { font-size: 13px; color: #6c7a8a; margin-top: 2px; }
+
+        .topbar-derecha { display: flex; align-items: center; gap: 12px; }
+
+        .avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #0a3d6b; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700;
+        }
+
+        .btn-contraste {
+            background: #f0a500; color: #000000; border: none;
+            border-radius: 8px; padding: 7px 14px; font-size: 13px;
+            font-weight: 700; cursor: pointer;
+        }
+
+        .btn-volver {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #0a3d6b;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .btn-volver:hover { text-decoration: underline; }
+
+        /* ── INFO / AVISO ── */
+        .aviso-card {
+            background: #e0eaf8;
+            border-left: 4px solid #0a3d6b;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .aviso-card h3 { font-size: 14px; color: #1a2e4a; margin-bottom: 6px; }
+        .aviso-card p { font-size: 13px; color: #3a4a5e; line-height: 1.5; }
+        .aviso-card ul { font-size: 13px; color: #3a4a5e; margin-top: 6px; padding-left: 1.2rem; }
+
+        /* ── TARJETA FORMULARIO ── */
+        .panel-card {
+            background: white;
+            border-radius: 14px;
+            border: 1px solid #d0dce8;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel-card h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1a2e4a;
+            margin-bottom: 1.25rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0a3d6b;
+            display: inline-block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 1.25rem;
+        }
+
+        .form-group { margin-bottom: 0; }
+        .form-group.full { grid-column: 1 / -1; }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a2e4a;
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d0dce8;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            background: white;
+        }
+
+        .form-group input:focus, .form-group select:focus { border-color: #0a3d6b; }
+        .form-group small { display: block; font-size: 12px; color: #6c7a8a; margin-top: 5px; }
+
+        .btn-primary {
+            background: #0a3d6b; color: white; font-size: 15px; font-weight: 600;
+            padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer;
+            transition: background 0.2s; margin-top: 1.25rem;
+        }
+
+        .btn-primary:hover { background: #0d4e87; }
+
+        .alerta, .exito {
+            padding: 10px 14px; font-size: 14px; margin-bottom: 1rem;
+            border-radius: 8px; display: none; color: #000000;
+        }
+
+        .alerta { background: #fde8e8; border-left: 4px solid #c0392b; }
+        .exito { background: #e6f7ee; border-left: 4px solid #1a9e5a; }
+
+        /* ── TABLA DE VEHÍCULOS REGISTRADOS ── */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+        th {
+            text-align: left;
+            color: #6c7a8a;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            padding: 10px 12px;
+            border-bottom: 2px solid #f4f6f9;
+        }
+
+        td { padding: 12px; border-bottom: 1px solid #f4f6f9; color: #1a2e4a; }
+
+        .estado-pill {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .estado-vigente { background: #e6f7ee; color: #1a9e5a; }
+        .estado-vencido { background: #fde8e8; color: #c0392b; }
+        .estado-porvencer { background: #fff8e6; color: #b85c00; }
+
+        .btn-eliminar {
+            background: none; border: none; color: #c0392b;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+        }
+
+        .vacio { text-align: center; padding: 2rem; color: #6c7a8a; font-size: 13px; }
+
+        :focus { outline: 3px solid #f0a500; outline-offset: 2px; }
+
+        @media (prefers-contrast: high) {
+            body { background: #ffffff; }
+            .sidebar { background: #000000; border-right: 2px solid #ffffff; }
+            .panel-card, .aviso-card { border: 2px solid #000000; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * { transition: none !important; animation: none !important; }
+        }
+
+        body.alto-contraste { background: #ffffff; }
+        body.alto-contraste .sidebar { background: #000000; }
+        body.alto-contraste .panel-card { border: 2px solid #000000; }
+        body.alto-contraste .topbar { border: 2px solid #000000; }
+        body.alto-contraste .aviso-card { border: 2px solid #000000; background: #ffffff; }
+
+        @media (max-width: 720px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar" role="navigation" aria-label="Menú principal">
+
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M3 7l9-4 9 4v10l-9 4-9-4V7z"/>
+                    <path d="M12 3v18M3 7l9 4 9-4"/>
+                </svg>
+            </div>
+            <div class="sidebar-logo-text">
+                Sistema Aduanero
+                <span>Digital · Chile</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-seccion">Principal</div>
+            <a href="panel.html" class="nav-link">🏠 Panel principal</a>
+
+            <div class="nav-seccion">Trámites</div>
+            <a href="vehiculos.html" class="nav-link activo" aria-current="page">🚗 Ingreso de vehículos</a>
+            <a href="menores.html" class="nav-link">👶 Menores de edad</a>
+            <a href="sag.html" class="nav-link">🌿 SAG alimentos y mascotas</a>
+
+            <div class="nav-seccion">Integración</div>
+            <a href="#" class="nav-link">🛡 Estado PDI</a>
+            <a href="#" class="nav-link">📋 Mis trámites</a>
+
+            <div class="nav-seccion">Reportes</div>
+            <a href="dashboard.html" class="nav-link">📊 Dashboard estadísticas</a>
+            <a href="#" class="nav-link">📄 Reporte PDF ingresos</a>
+            <a href="#" class="nav-link">📊 Reporte Excel egresos</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-cerrar" onclick="cerrarSesion()" aria-label="Cerrar sesión del sistema">
+                🚪 Cerrar sesión
+            </button>
+        </div>
+
+    </aside>
+
+    <main class="contenido" role="main">
+
+        <div class="topbar">
+            <div class="topbar-saludo">
+                <h2>🚗 Ingreso de vehículos</h2>
+                <p id="fecha-texto">Registro de salida temporal del país</p>
+            </div>
+            <div class="topbar-derecha">
+                <button class="btn-contraste" onclick="toggleContraste()" aria-label="Activar modo alto contraste">
+                    👁 Alto contraste
+                </button>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="avatar" id="avatar-iniciales">?</div>
+                    <span style="font-size:14px;color:#1a2e4a;font-weight:500;" id="nombre-topbar">Usuario</span>
+                </div>
+            </div>
+        </div>
+
+        <a href="panel.html" class="btn-volver">← Volver al panel</a>
+
+        <div class="aviso-card" role="note">
+            <div style="font-size:1.6rem;" aria-hidden="true">ℹ️</div>
+            <div>
+                <h3>Plazos de permanencia fuera del país</h3>
+                <p>Según el Acuerdo de Tránsito Vecinal, los plazos máximos de salida temporal para vehículos particulares son:</p>
+                <ul>
+                    <li><strong>Chile — Argentina:</strong> hasta 180 días corridos.</li>
+                    <li><strong>Vehículos con placa diplomática:</strong> hasta 90 días corridos.</li>
+                    <li><strong>Otros destinos:</strong> hasta 90 días corridos, salvo convenio específico.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="panel-card">
+            <h2>Registrar salida de vehículo</h2>
+
+            <div class="alerta" id="alerta" role="alert" aria-live="polite">
+                ⚠️ <span id="alerta-texto"></span>
+            </div>
+            <div class="exito" id="exito" role="alert" aria-live="polite">
+                ✅ <span id="exito-texto"></span>
+            </div>
+
+            <form aria-label="Formulario de registro de vehículo" onsubmit="return false">
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="patente">Patente del vehículo</label>
+                        <input type="text" id="patente" placeholder="AB-CD-12" aria-required="true">
+                        <small>Formato chileno: 4 letras + 2 números, o 2 letras + 4 números.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipo-vehiculo">Tipo de vehículo</label>
+                        <select id="tipo-vehiculo" aria-required="true">
+                            <option value="">Selecciona un tipo</option>
+                            <option value="automovil">Automóvil</option>
+                            <option value="camioneta">Camioneta / SUV</option>
+                            <option value="motocicleta">Motocicleta</option>
+                            <option value="camion">Camión</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="titular">Tipo de titular</label>
+                        <select id="titular" aria-required="true">
+                            <option value="">Selecciona una opción</option>
+                            <option value="particular">Particular</option>
+                            <option value="diplomatico">Diplomático</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="destino">País de destino</label>
+                        <select id="destino" aria-required="true">
+                            <option value="">Selecciona un país</option>
+                            <option value="argentina">🇦🇷 Argentina</option>
+                            <option value="peru">🇵🇪 Perú</option>
+                            <option value="bolivia">🇧🇴 Bolivia</option>
+                            <option value="otro">🌎 Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha-salida">Fecha de salida</label>
+                        <input type="date" id="fecha-salida" aria-required="true">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fecha-retorno">Fecha estimada de retorno</label>
+                        <input type="date" id="fecha-retorno" aria-required="true">
+                    </div>
+
+                </div>
+
+                <button class="btn-primary" type="button" onclick="registrarVehiculo()">
+                    Registrar salida
+                </button>
+            </form>
+        </div>
+
+        <div class="panel-card">
+            <h2>Vehículos registrados</h2>
+            <div style="overflow-x:auto;">
+                <table id="tabla-vehiculos" role="table" aria-label="Vehículos registrados">
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Destino</th>
+                            <th>Titular</th>
+                            <th>Salida</th>
+                            <th>Retorno límite</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla"></tbody>
+                </table>
+                <p class="vacio" id="mensaje-vacio" style="display:none;">
+                    Aún no hay vehículos registrados. Usa el formulario para agregar el primero.
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+
+        // ── Datos de sesión ──
+        var nombre = localStorage.getItem('nombre') || 'Juan Pérez';
+        var rol    = localStorage.getItem('rol')    || 'PASAJERO';
+        document.getElementById('nombre-topbar').textContent = nombre;
+        var partes = nombre.split(' ');
+        var iniciales = partes.length >= 2 ? partes[0][0] + partes[1][0] : partes[0][0];
+        document.getElementById('avatar-iniciales').textContent = iniciales.toUpperCase();
+
+        var LIMITES = { diplomatico: 90, argentina: 180, otro: 90 };
+
+        function limiteDias(destino, titular) {
+            if (titular === 'diplomatico') return LIMITES.diplomatico;
+            if (destino === 'argentina') return LIMITES.argentina;
+            return LIMITES.otro;
+        }
+
+        function cargarVehiculos() {
+            var datos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+            var cuerpo = document.getElementById('cuerpo-tabla');
+            var vacio  = document.getElementById('mensaje-vacio');
+            cuerpo.innerHTML = '';
+
+            if (datos.length === 0) {
+                vacio.style.display = 'block';
+                return;
+            }
+            vacio.style.display = 'none';
+
+            datos.forEach(function(v, idx) {
+                var hoy = new Date();
+                var limite = new Date(v.fechaLimite);
+                var diasRestantes = Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
+                var estadoClase = 'estado-vigente';
+                var estadoTexto = 'Vigente';
+                if (diasRestantes < 0) { estadoClase = 'estado-vencido'; estadoTexto = 'Vencido'; }
+                else if (diasRestantes <= 15) { estadoClase = 'estado-porvencer'; estadoTexto = 'Por vencer'; }
+
+                var fila = document.createElement('tr');
+                fila.innerHTML =
+                    '<td><strong>' + v.patente + '</strong></td>' +
+                    '<td>' + v.destinoTexto + '</td>' +
+                    '<td>' + v.titularTexto + '</td>' +
+                    '<td>' + v.fechaSalida + '</td>' +
+                    '<td>' + v.fechaLimite + '</td>' +
+                    '<td><span class="estado-pill ' + estadoClase + '">' + estadoTexto + '</span></td>' +
+                    '<td><button class="btn-eliminar" onclick="eliminarVehiculo(' + idx + ')" aria-label="Eliminar registro de ' + v.patente + '">Eliminar</button></td>';
+                cuerpo.appendChild(fila);
+            });
+        }
+
+        function eliminarVehiculo(idx) {
+            var datos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+            datos.splice(idx, 1);
+            localStorage.setItem('vehiculos', JSON.stringify(datos));
+            cargarVehiculos();
+        }
+
+        function validarPatente(patente) {
+            patente = patente.toUpperCase().replace(/\s/g, '');
+            return /^[A-Z]{2}\d{4}$/.test(patente) || /^[A-Z]{4}\d{2}$/.test(patente);
+        }
+
+        function registrarVehiculo() {
+            var patente     = document.getElementById('patente').value.trim();
+            var tipoVeh     = document.getElementById('tipo-vehiculo').value;
+            var titular     = document.getElementById('titular').value;
+            var destino     = document.getElementById('destino').value;
+            var fechaSalida = document.getElementById('fecha-salida').value;
+            var fechaRetorno= document.getElementById('fecha-retorno').value;
+
+            var alerta = document.getElementById('alerta');
+            var exito  = document.getElementById('exito');
+            alerta.style.display = 'none';
+            exito.style.display  = 'none';
+
+            if (!patente || !validarPatente(patente)) {
+                mostrarAlerta('Ingresa una patente válida (ej: AB1234 o ABCD12).');
+                return;
+            }
+            if (!tipoVeh) { mostrarAlerta('Selecciona el tipo de vehículo.'); return; }
+            if (!titular) { mostrarAlerta('Selecciona el tipo de titular.'); return; }
+            if (!destino) { mostrarAlerta('Selecciona el país de destino.'); return; }
+            if (!fechaSalida || !fechaRetorno) { mostrarAlerta('Completa ambas fechas.'); return; }
+            if (new Date(fechaRetorno) <= new Date(fechaSalida)) {
+                mostrarAlerta('La fecha de retorno debe ser posterior a la fecha de salida.');
+                return;
+            }
+
+            var maxDias = limiteDias(destino, titular);
+            var diasSolicitados = Math.ceil((new Date(fechaRetorno) - new Date(fechaSalida)) / (1000 * 60 * 60 * 24));
+            var fechaLimite = new Date(fechaSalida);
+            fechaLimite.setDate(fechaLimite.getDate() + maxDias);
+
+            if (diasSolicitados > maxDias) {
+                mostrarAlerta('El período solicitado (' + diasSolicitados + ' días) supera el máximo permitido de ' + maxDias + ' días para este caso.');
+                return;
+            }
+
+            var destinoTextos = { argentina: '🇦🇷 Argentina', peru: '🇵🇪 Perú', bolivia: '🇧🇴 Bolivia', otro: '🌎 Otro' };
+            var titularTextos = { particular: 'Particular', diplomatico: 'Diplomático' };
+
+            var datos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+            datos.push({
+                patente: patente.toUpperCase(),
+                destinoTexto: destinoTextos[destino],
+                titularTexto: titularTextos[titular],
+                fechaSalida: fechaSalida,
+                fechaLimite: fechaLimite.toISOString().split('T')[0]
+            });
+            localStorage.setItem('vehiculos', JSON.stringify(datos));
+
+            mostrarExito('Vehículo ' + patente.toUpperCase() + ' registrado correctamente. Plazo máximo: ' + maxDias + ' días.');
+            document.getElementById('patente').value = '';
+            document.getElementById('tipo-vehiculo').value = '';
+            document.getElementById('titular').value = '';
+            document.getElementById('destino').value = '';
+            document.getElementById('fecha-salida').value = '';
+            document.getElementById('fecha-retorno').value = '';
+            cargarVehiculos();
+        }
+
+        function mostrarAlerta(msg) {
+            document.getElementById('alerta-texto').textContent = msg;
+            document.getElementById('alerta').style.display = 'block';
+        }
+        function mostrarExito(msg) {
+            document.getElementById('exito-texto').textContent = msg;
+            document.getElementById('exito').style.display = 'block';
+        }
+
+        function toggleContraste() { document.body.classList.toggle('alto-contraste'); }
+
+        function cerrarSesion() {
+            if (confirm('¿Seguro que quieres cerrar sesión?')) {
+                localStorage.removeItem('nombre');
+                localStorage.removeItem('username');
+                localStorage.removeItem('rol');
+                localStorage.removeItem('correo');
+                window.location.href = 'aduana.html';
+            }
+        }
+
+        cargarVehiculos();
+
+    </script>
+
+</body>
+</html>

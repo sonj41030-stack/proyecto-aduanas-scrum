@@ -1,0 +1,28 @@
+
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAG</title><style>
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;display:flex;background:#f4f6f9}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}input,select{width:100%;padding:10px}button{padding:10px 18px;background:#0a3d6b;color:#fff;border:0;border-radius:8px;cursor:pointer}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd}.alto{background:#000}.alto .top,.alto .card{border:2px solid #000}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="side"><h2>Sistema Aduanero</h2>
+<a href="panel.html">🏠 Panel</a>
+<a href="vehiculos.html">🚗 Vehículos</a>
+<a href="menores.html">👶 Menores</a>
+<a href="sag.html"><b>🌿 SAG</b></a></div>
+<div class="main">
+<div class="top"><h2>Declaración SAG</h2><button onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button></div>
+<div class="card"><div class="grid">
+<div><label>Nombre pasajero</label><input id="nom"></div>
+<div><label>País de procedencia</label><input id="pais"></div>
+<div><label>¿Transporta alimentos?</label><select id="alim"><option>No</option><option>Sí</option></select></div>
+<div><label>¿Transporta mascotas?</label><select id="mas"><option>No</option><option>Sí</option></select></div>
+<div><label>Detalle</label><input id="det"></div>
+<div><label>Certificado sanitario</label><select id="cer"><option>No</option><option>Sí</option></select></div>
+</div><br><button onclick="reg()">Registrar declaración</button><p id="m"></p></div>
+<div class="card"><h3>Declaraciones</h3><table><thead><tr><th>Pasajero</th><th>Alimentos</th><th>Mascotas</th><th>Detalle</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+</div>
+<script>
+function load(){let a=JSON.parse(localStorage.getItem('sag')||'[]');tb.innerHTML='';a.forEach((x,i)=>tb.innerHTML+=`<tr><td>${x.n}</td><td>${x.al}</td><td>${x.ma}</td><td>${x.d}</td><td><button onclick="delr(${i})">Eliminar</button></td></tr>`)}
+function reg(){if(!nom.value||!pais.value){m.innerHTML='Complete los datos';m.style.color='red';return;}if((alim.value=='Sí'||mas.value=='Sí')&&!cer.value.includes('Sí')){m.innerHTML='Debe indicar certificado sanitario';m.style.color='red';return;}let a=JSON.parse(localStorage.getItem('sag')||'[]');a.push({n:nom.value,al:alim.value,ma:mas.value,d:det.value});localStorage.setItem('sag',JSON.stringify(a));m.innerHTML='Declaración registrada';m.style.color='green';document.querySelectorAll('input').forEach(i=>i.value='');load();}
+function delr(i){let a=JSON.parse(localStorage.getItem('sag')||'[]');a.splice(i,1);localStorage.setItem('sag',JSON.stringify(a));load();}
+load();
+</script></body></html>
