@@ -1,0 +1,3 @@
+com\duanas\apiwateway\ApiWatewayApplication.class
+com\duanas\apiwateway\GatewayController.class
+com\duanas\apiwateway\CorsConfig.class
