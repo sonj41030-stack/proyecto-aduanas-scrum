@@ -1,0 +1,17 @@
+com\proyecto\aduanas\msreportes\service\ReporteService.class
+com\proyecto\aduanas\msreportes\exception\ReporteNotFoundException.class
+com\proyecto\aduanas\msreportes\dto\ErrorResponse$ErrorResponseBuilder.class
+com\proyecto\aduanas\msreportes\entity\Reporte.class
+com\proyecto\aduanas\msreportes\dto\ErrorResponse.class
+com\proyecto\aduanas\msreportes\MsReportesApplication.class
+com\proyecto\aduanas\msreportes\entity\Prioridad.class
+com\proyecto\aduanas\msreportes\repository\ReporteRepository.class
+com\proyecto\aduanas\msreportes\dto\ReporteRequestDTO.class
+com\proyecto\aduanas\msreportes\dto\ReporteResponseDTO$ReporteResponseDTOBuilder.class
+com\proyecto\aduanas\msreportes\entity\EstadoReporte.class
+com\proyecto\aduanas\msreportes\dto\ReporteResponseDTO.class
+com\proyecto\aduanas\msreportes\service\impl\ReporteServiceImpl.class
+com\proyecto\aduanas\msreportes\controller\ReporteController.class
+com\proyecto\aduanas\msreportes\dto\ReporteRequestDTO$ReporteRequestDTOBuilder.class
+com\proyecto\aduanas\msreportes\entity\Reporte$ReporteBuilder.class
+com\proyecto\aduanas\msreportes\exception\GlobalExceptionHandler.class

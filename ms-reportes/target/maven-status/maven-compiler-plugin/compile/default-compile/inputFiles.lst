@@ -1,0 +1,13 @@
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\dto\ReporteRequestDTO.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\dto\ErrorResponse.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\dto\ReporteResponseDTO.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\entity\Reporte.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\MsReportesApplication.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\entity\Prioridad.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\repository\ReporteRepository.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\service\impl\ReporteServiceImpl.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\controller\ReporteController.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\entity\EstadoReporte.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\exception\GlobalExceptionHandler.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\service\ReporteService.java
+C:\Users\Klare Stella\Downloads\proyecto-aduanas-scrum-main\ms-reportes\src\main\java\com\proyecto\aduanas\msreportes\exception\ReporteNotFoundException.java
