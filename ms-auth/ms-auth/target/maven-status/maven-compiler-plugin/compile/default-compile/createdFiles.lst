@@ -1,0 +1,8 @@
+com\duanas\msauth\MsAuthApplication.class
+com\duanas\msauth\security\SecurityConfig.class
+com\duanas\msauth\controller\AuthController.class
+com\duanas\msauth\model\Usuario.class
+com\duanas\msauth\repository\UsuarioRepository.class
+com\duanas\msauth\security\JwtUtil.class
+com\duanas\msauth\service\UsuarioService.class
+com\duanas\msauth\security\JwtFilter.class
