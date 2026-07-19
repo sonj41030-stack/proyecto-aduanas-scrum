@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Sistema Aduanero Digital</title>
+<style>
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}
+body{margin:0;background:#f4f6f9;display:flex}
+.sidebar{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}
+.sidebar a{display:block;color:#fff;text-decoration:none;padding:10px 0}
+.main{flex:1;padding:20px}
+.topbar{background:#fff;padding:15px 20px;border-radius:10px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:20px}
+.card{background:#fff;padding:20px;border-radius:10px}
+.card h3{margin:0 0 10px;font-size:15px;color:#1a2e4a}
+.num{font-size:32px;font-weight:700;color:#0a3d6b}
+.box{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}
+.bar{height:18px;background:#d0dce8;border-radius:10px;overflow:hidden;margin-top:6px}
+.fill{height:100%;background:#0a3d6b}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}
+button{background:#f0a500;color:#000;border:0;padding:8px 14px;border-radius:8px;cursor:pointer}
+.alto{background:#000}
+.alto .card,.alto .topbar,.alto .box{border:2px solid #000}
+.aviso{color:#b85c00;font-size:13px}
+@media(max-width:700px){body{display:block}.sidebar{width:100%;min-height:auto}}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<h2>Sistema Aduanero</h2>
+<a href="panel.html">🏠 Panel</a>
+<a href="vehiculos.html">🚗 Vehículos</a>
+<a href="menores.html">👶 Menores</a>
+<a href="sag.html">🌿 SAG</a>
+<a href="dashboard.html"><b>📊 Dashboard</b></a>
+<a href="mis-tramites.html">📋 Mis Trámites</a>
+<a href="estado-pdi.html">🛡 Estado PDI</a>
+</div>
+
+<div class="main">
+<div class="topbar">
+<div>
+<h2>📊 Dashboard de Estadísticas</h2>
+<p id="fecha"></p>
+</div>
+<button onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button>
+</div>
+
+<div class="cards">
+<div class="card"><h3>Vehículos registrados</h3><div class="num" id="vehiculos">…</div></div>
+<div class="card"><h3>Viajeros menores registrados</h3><div class="num" id="menores">…</div></div>
+<div class="card"><h3>Declaraciones SAG</h3><div class="num" id="sag">…</div></div>
+<div class="card"><h3>Consultas PDI</h3><div class="num" id="pdi">…</div></div>
+<div class="card"><h3>Total trámites</h3><div class="num" id="total">…</div></div>
+</div>
+
+<div class="box">
+<h3>Distribución de trámites</h3>
+<div><strong>Vehículos</strong><div class="bar"><div class="fill" id="barVeh"></div></div></div>
+<div><strong>Menores</strong><div class="bar"><div class="fill" id="barMen"></div></div></div>
+<div><strong>SAG</strong><div class="bar"><div class="fill" id="barSag"></div></div></div>
+<div><strong>PDI</strong><div class="bar"><div class="fill" id="barPdi"></div></div></div>
+</div>
+
+<div class="box">
+<h3>Resumen</h3>
+<p id="avisoConexion" class="aviso"></p>
+<table>
+<thead><tr><th>Módulo</th><th>Cantidad</th><th>Estado</th></tr></thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+</div>
+
+<script>
+var API_GATEWAY = 'http://localhost:8090';
+
+async function contarViajerosMenores() {
+    // No hay un endpoint agregado de "todos los viajeros", así que recorremos
+    // vehículo -> salidas -> viajeros y contamos los que son menores de edad.
+    var total = 0;
+    var vehiculos = await fetch(API_GATEWAY + '/tramites/vehiculos').then(function (r) { return r.ok ? r.json() : []; });
+    for (var i = 0; i < vehiculos.length; i++) {
+        var salidas = await fetch(API_GATEWAY + '/tramites/salidas-temporales/vehiculo/' + vehiculos[i].id)
+            .then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+        for (var j = 0; j < salidas.length; j++) {
+            var viajeros = await fetch(API_GATEWAY + '/tramites/viajeros/salida/' + salidas[j].id + '/menores')
+                .then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+            total += viajeros.length;
+        }
+    }
+    return { totalVehiculos: vehiculos.length, totalMenores: total };
+}
+
+async function cargar(){
+    var estados = [];
+    var veh = 0, men = 0, sag = 0, pdi = 0;
+
+    try {
+        var resVeh = await contarViajerosMenores();
+        veh = resVeh.totalVehiculos;
+        men = resVeh.totalMenores;
+        estados.push('ms-tramites: conectado');
+    } catch (e) {
+        estados.push('ms-tramites: sin conexión');
+    }
+
+    try {
+        var declaraciones = await fetch(API_GATEWAY + '/sag').then(function (r) { return r.ok ? r.json() : []; });
+        sag = declaraciones.length;
+        estados.push('ms-sag: conectado');
+    } catch (e) {
+        estados.push('ms-sag: sin conexión');
+    }
+
+    try {
+        var consultas = await fetch(API_GATEWAY + '/pdi/consultas').then(function (r) { return r.ok ? r.json() : []; });
+        pdi = consultas.length;
+        estados.push('ms-pdi: conectado');
+    } catch (e) {
+        estados.push('ms-pdi: sin conexión');
+    }
+
+    var total = veh + men + sag + pdi;
+
+    document.getElementById('vehiculos').textContent = veh;
+    document.getElementById('menores').textContent = men;
+    document.getElementById('sag').textContent = sag;
+    document.getElementById('pdi').textContent = pdi;
+    document.getElementById('total').textContent = total;
+
+    document.getElementById('barVeh').style.width = (total ? (veh / total) * 100 : 0) + '%';
+    document.getElementById('barMen').style.width = (total ? (men / total) * 100 : 0) + '%';
+    document.getElementById('barSag').style.width = (total ? (sag / total) * 100 : 0) + '%';
+    document.getElementById('barPdi').style.width = (total ? (pdi / total) * 100 : 0) + '%';
+
+    document.getElementById('tabla').innerHTML =
+        '<tr><td>🚗 Vehículos</td><td>' + veh + '</td><td>Activo</td></tr>' +
+        '<tr><td>👶 Viajeros menores</td><td>' + men + '</td><td>Activo</td></tr>' +
+        '<tr><td>🌿 SAG</td><td>' + sag + '</td><td>Activo</td></tr>' +
+        '<tr><td>🛡 Consultas PDI</td><td>' + pdi + '</td><td>Activo</td></tr>' +
+        '<tr><td><strong>📊 Total</strong></td><td><strong>' + total + '</strong></td><td><strong>Operativo</strong></td></tr>';
+
+    document.getElementById('avisoConexion').textContent = estados.join(' · ');
+}
+
+document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-CL',{
+  weekday:'long', year:'numeric', month:'long', day:'numeric'
+});
+
+cargar();
+</script>
+</body>
+</html>

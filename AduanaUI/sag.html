@@ -1,7 +1,6 @@
-
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SAG</title><style>
-*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;display:flex;background:#f4f6f9}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}input,select{width:100%;padding:10px}button{padding:10px 18px;background:#0a3d6b;color:#fff;border:0;border-radius:8px;cursor:pointer}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd}.alto{background:#000}.alto .top,.alto .card{border:2px solid #000}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}.grid{grid-template-columns:1fr}}
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;display:flex;background:#f4f6f9}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}input,select{width:100%;padding:10px}button{padding:10px 18px;background:#0a3d6b;color:#fff;border:0;border-radius:8px;cursor:pointer}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd}.alto{background:#000}.alto .top,.alto .card{border:2px solid #000}.pill{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600}.pill-reg{background:#d4edda;color:#155724}.pill-obs{background:#fff3cd;color:#856404}.pill-apr{background:#cce5ff;color:#004085}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}.grid{grid-template-columns:1fr}}
 </style></head><body>
 <div class="side"><h2>Sistema Aduanero</h2>
 <a href="panel.html">🏠 Panel</a>
@@ -13,16 +12,84 @@
 <div class="card"><div class="grid">
 <div><label>Nombre pasajero</label><input id="nom"></div>
 <div><label>País de procedencia</label><input id="pais"></div>
-<div><label>¿Transporta alimentos?</label><select id="alim"><option>No</option><option>Sí</option></select></div>
-<div><label>¿Transporta mascotas?</label><select id="mas"><option>No</option><option>Sí</option></select></div>
+<div><label>¿Transporta alimentos?</label><select id="alim"><option value="false">No</option><option value="true">Sí</option></select></div>
+<div><label>¿Transporta mascotas?</label><select id="mas"><option value="false">No</option><option value="true">Sí</option></select></div>
 <div><label>Detalle</label><input id="det"></div>
-<div><label>Certificado sanitario</label><select id="cer"><option>No</option><option>Sí</option></select></div>
+<div><label>Certificado sanitario</label><select id="cer"><option value="false">No</option><option value="true">Sí</option></select></div>
 </div><br><button onclick="reg()">Registrar declaración</button><p id="m"></p></div>
-<div class="card"><h3>Declaraciones</h3><table><thead><tr><th>Pasajero</th><th>Alimentos</th><th>Mascotas</th><th>Detalle</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="card"><h3>Declaraciones</h3><table><thead><tr><th>Pasajero</th><th>Alimentos</th><th>Mascotas</th><th>Detalle</th><th>Estado</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
 </div>
 <script>
-function load(){let a=JSON.parse(localStorage.getItem('sag')||'[]');tb.innerHTML='';a.forEach((x,i)=>tb.innerHTML+=`<tr><td>${x.n}</td><td>${x.al}</td><td>${x.ma}</td><td>${x.d}</td><td><button onclick="delr(${i})">Eliminar</button></td></tr>`)}
-function reg(){if(!nom.value||!pais.value){m.innerHTML='Complete los datos';m.style.color='red';return;}if((alim.value=='Sí'||mas.value=='Sí')&&!cer.value.includes('Sí')){m.innerHTML='Debe indicar certificado sanitario';m.style.color='red';return;}let a=JSON.parse(localStorage.getItem('sag')||'[]');a.push({n:nom.value,al:alim.value,ma:mas.value,d:det.value});localStorage.setItem('sag',JSON.stringify(a));m.innerHTML='Declaración registrada';m.style.color='green';document.querySelectorAll('input').forEach(i=>i.value='');load();}
-function delr(i){let a=JSON.parse(localStorage.getItem('sag')||'[]');a.splice(i,1);localStorage.setItem('sag',JSON.stringify(a));load();}
+var API_GATEWAY = 'http://localhost:8090';
+var pillClass = { REGISTRADA: 'pill-reg', OBSERVADA: 'pill-obs', APROBADA: 'pill-apr' };
+
+async function load(){
+    var tb = document.getElementById('tb');
+    tb.innerHTML = '';
+    try {
+        var resp = await fetch(API_GATEWAY + '/sag');
+        if (!resp.ok) throw new Error('No se pudo listar declaraciones');
+        var declaraciones = await resp.json();
+        if (!declaraciones.length) { tb.innerHTML = '<tr><td colspan="6">Sin declaraciones registradas.</td></tr>'; return; }
+        declaraciones.forEach(function (x) {
+            var pill = '<span class="pill ' + (pillClass[x.estado] || 'pill-reg') + '">' + x.estado + '</span>';
+            tb.innerHTML += '<tr><td>' + x.pasajeroNombre + '</td><td>' + (x.transportaAlimentos ? 'Sí' : 'No') +
+                '</td><td>' + (x.transportaMascotas ? 'Sí' : 'No') + '</td><td>' + (x.detalle || '-') +
+                '</td><td>' + pill + '</td><td><button onclick="delr(' + x.id + ')">Eliminar</button></td></tr>';
+        });
+    } catch (e) {
+        tb.innerHTML = '<tr><td colspan="6">No se pudo conectar con ms-sag (¿api-gateway y ms-sag están corriendo?).</td></tr>';
+    }
+}
+
+async function reg(){
+    var m = document.getElementById('m');
+    if (!nom.value.trim() || !pais.value.trim()) { m.textContent = 'Complete los datos'; m.style.color = 'red'; return; }
+    var transportaAlimentos = alim.value === 'true';
+    var transportaMascotas = mas.value === 'true';
+    var certificadoSanitario = cer.value === 'true';
+    if ((transportaAlimentos || transportaMascotas) && !certificadoSanitario) {
+        m.textContent = 'Aviso: sin certificado sanitario, la declaración quedará OBSERVADA para revisión del funcionario SAG.';
+        m.style.color = '#b85c00';
+    }
+    try {
+        var resp = await fetch(API_GATEWAY + '/sag', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pasajeroNombre: nom.value.trim(),
+                paisProcedencia: pais.value.trim(),
+                transportaAlimentos: transportaAlimentos,
+                transportaMascotas: transportaMascotas,
+                detalle: det.value.trim(),
+                certificadoSanitario: certificadoSanitario
+            })
+        });
+        if (!resp.ok) {
+            var err = await resp.json().catch(function () { return {}; });
+            m.textContent = (err.errores && Object.values(err.errores)[0]) || err.message || 'No se pudo registrar la declaración.';
+            m.style.color = 'red';
+            return;
+        }
+        var creada = await resp.json();
+        m.textContent = creada.estado === 'OBSERVADA'
+            ? 'Declaración registrada, queda OBSERVADA (falta certificado sanitario).'
+            : 'Declaración registrada correctamente.';
+        m.style.color = 'green';
+        document.querySelectorAll('input').forEach(function (i) { i.value = ''; });
+        load();
+    } catch (e) {
+        m.textContent = 'No se pudo conectar con el servidor. ¿Está el api-gateway corriendo en el puerto 8090?';
+        m.style.color = 'red';
+    }
+}
+
+async function delr(id){
+    try {
+        await fetch(API_GATEWAY + '/sag/' + id, { method: 'DELETE' });
+        load();
+    } catch (e) { /* silencioso */ }
+}
+
 load();
 </script></body></html>

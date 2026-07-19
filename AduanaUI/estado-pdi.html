@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Estado PDI</title><style>
-*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;background:#f4f6f9;display:flex}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}input,select{width:100%;padding:10px}button{background:#0a3d6b;color:#fff;border:0;padding:10px 18px;border-radius:8px;cursor:pointer}.estado{font-size:22px;font-weight:bold;margin-top:20px}.ok{color:#198754}.obs{color:#b85c00}.bloq{color:#c0392b}.alto{background:#000}.alto .top,.alto .card{border:2px solid #000}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}.grid{grid-template-columns:1fr}}
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;background:#f4f6f9;display:flex}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}input,select{width:100%;padding:10px}button{background:#0a3d6b;color:#fff;border:0;padding:10px 18px;border-radius:8px;cursor:pointer}.estado{font-size:22px;font-weight:bold;margin-top:20px}.ok{color:#198754}.obs{color:#b85c00}.bloq{color:#c0392b}.alto{background:#000}.alto .top,.alto .card{border:2px solid #000}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left;font-size:14px}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}.grid{grid-template-columns:1fr}}
 </style></head><body>
 <div class="side"><h2>Sistema Aduanero</h2>
 <a href="panel.html">🏠 Panel</a>
@@ -16,19 +16,67 @@
 <div class="grid">
 <div><label>Nombre</label><input id="nom"></div>
 <div><label>RUN/Pasaporte</label><input id="doc"></div>
-<div><label>Estado</label><select id="est"><option>Habilitado para viajar</option><option>Observaciones pendientes</option><option>Salida bloqueada</option></select></div>
-<div><label>Fecha consulta</label><input type="date" id="fec"></div>
 </div><br>
 <button onclick="consultar()">Consultar</button>
 <div id="resultado" class="estado"></div>
 </div>
+<div class="card">
+<h3>Historial de consultas</h3>
+<table><thead><tr><th>Nombre</th><th>Documento</th><th>Estado</th><th>Fecha</th></tr></thead><tbody id="tb"></tbody></table>
+</div>
 </div>
 <script>
-function consultar(){
- if(!nom.value||!doc.value||!fec.value){resultado.innerHTML="Complete todos los datos.";resultado.className="estado bloq";return;}
- if(est.value=="Habilitado para viajar"){resultado.innerHTML="🟢 Habilitado para salir del país.";resultado.className="estado ok";}
- else if(est.value=="Observaciones pendientes"){resultado.innerHTML="🟡 Existen observaciones pendientes.";resultado.className="estado obs";}
- else{resultado.innerHTML="🔴 Salida bloqueada. Debe regularizar su situación.";resultado.className="estado bloq";}
+var API_GATEWAY = 'http://localhost:8090';
+var claseEstado = { HABILITADO: 'ok', OBSERVACIONES: 'obs', BLOQUEADO: 'bloq' };
+var iconoEstado = { HABILITADO: '🟢', OBSERVACIONES: '🟡', BLOQUEADO: '🔴' };
+
+async function consultar(){
+    var resultado = document.getElementById('resultado');
+    if (!nom.value.trim() || !doc.value.trim()) {
+        resultado.innerHTML = 'Complete todos los datos.';
+        resultado.className = 'estado bloq';
+        return;
+    }
+    try {
+        var resp = await fetch(API_GATEWAY + '/pdi/consultas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombreConsultado: nom.value.trim(), documento: doc.value.trim() })
+        });
+        if (!resp.ok) {
+            resultado.innerHTML = 'No se pudo realizar la consulta.';
+            resultado.className = 'estado bloq';
+            return;
+        }
+        var data = await resp.json();
+        resultado.innerHTML = (iconoEstado[data.estado] || '') + ' ' + data.mensaje +
+            (data.observaciones ? ' — ' + data.observaciones : '');
+        resultado.className = 'estado ' + (claseEstado[data.estado] || '');
+        cargarHistorial();
+    } catch (e) {
+        resultado.innerHTML = 'No se pudo conectar con el servidor. ¿Está el api-gateway corriendo en el puerto 8090?';
+        resultado.className = 'estado bloq';
+    }
 }
+
+async function cargarHistorial(){
+    var tb = document.getElementById('tb');
+    try {
+        var resp = await fetch(API_GATEWAY + '/pdi/consultas');
+        if (!resp.ok) throw new Error('no ok');
+        var historial = await resp.json();
+        tb.innerHTML = '';
+        if (!historial.length) { tb.innerHTML = '<tr><td colspan="4">Sin consultas registradas.</td></tr>'; return; }
+        historial.slice(0, 15).forEach(function (h) {
+            tb.innerHTML += '<tr><td>' + h.nombreConsultado + '</td><td>' + h.documento + '</td><td>' +
+                (iconoEstado[h.estado] || '') + ' ' + h.estado + '</td><td>' +
+                (h.fechaConsulta || '').replace('T', ' ').split('.')[0] + '</td></tr>';
+        });
+    } catch (e) {
+        tb.innerHTML = '<tr><td colspan="4">No se pudo conectar con ms-pdi.</td></tr>';
+    }
+}
+
+cargarHistorial();
 </script>
 </body></html>

@@ -410,6 +410,41 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="marca">Marca</label>
+                        <input type="text" id="marca" placeholder="Toyota">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modelo">Modelo</label>
+                        <input type="text" id="modelo" placeholder="Yaris">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="anio">Año</label>
+                        <input type="number" id="anio" placeholder="2020" min="1950">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="color">Color</label>
+                        <input type="text" id="color" placeholder="Gris">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propietario-rut">RUT del propietario/conductor</label>
+                        <input type="text" id="propietario-rut" placeholder="12.345.678-9">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="propietario-nombre">Nombre del propietario/conductor</label>
+                        <input type="text" id="propietario-nombre" placeholder="Juan Pérez">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="motivo-viaje">Motivo del viaje</label>
+                        <input type="text" id="motivo-viaje" placeholder="Turismo">
+                    </div>
+
+                    <div class="form-group">
                         <label for="titular">Tipo de titular</label>
                         <select id="titular" aria-required="true">
                             <option value="">Selecciona una opción</option>
@@ -483,6 +518,9 @@
         document.getElementById('avatar-iniciales').textContent = iniciales.toUpperCase();
 
         var LIMITES = { diplomatico: 90, argentina: 180, otro: 90 };
+        var API_GATEWAY = 'http://localhost:8090';
+        var destinoTextos = { argentina: '🇦🇷 Argentina', peru: '🇵🇪 Perú', bolivia: '🇧🇴 Bolivia', otro: '🌎 Otro' };
+        var titularTextos = { particular: 'Particular', diplomatico: 'Diplomático' };
 
         function limiteDias(destino, titular) {
             if (titular === 'diplomatico') return LIMITES.diplomatico;
@@ -490,45 +528,73 @@
             return LIMITES.otro;
         }
 
-        function cargarVehiculos() {
-            var datos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
+        // ── Carga la tabla desde ms-tramites (vía gateway) en vez de localStorage ──
+        async function cargarVehiculos() {
             var cuerpo = document.getElementById('cuerpo-tabla');
             var vacio  = document.getElementById('mensaje-vacio');
             cuerpo.innerHTML = '';
 
-            if (datos.length === 0) {
+            var vehiculos;
+            try {
+                var resp = await fetch(API_GATEWAY + '/tramites/vehiculos');
+                if (!resp.ok) throw new Error('No se pudo listar vehículos');
+                vehiculos = await resp.json();
+            } catch (e) {
+                vacio.style.display = 'block';
+                vacio.textContent = 'No se pudo conectar con el servicio de trámites (¿api-gateway y ms-tramites están corriendo?).';
+                return;
+            }
+
+            if (!vehiculos.length) {
                 vacio.style.display = 'block';
                 return;
             }
             vacio.style.display = 'none';
 
-            datos.forEach(function(v, idx) {
-                var hoy = new Date();
-                var limite = new Date(v.fechaLimite);
-                var diasRestantes = Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
+            // Para cada vehículo, buscamos su(s) salida(s) temporal(es) asociadas
+            for (var i = 0; i < vehiculos.length; i++) {
+                var v = vehiculos[i];
+                var salidas = [];
+                try {
+                    var respS = await fetch(API_GATEWAY + '/tramites/salidas-temporales/vehiculo/' + v.id);
+                    if (respS.ok) salidas = await respS.json();
+                } catch (e) { /* si falla, se muestra igual el vehículo sin salida */ }
+
+                var ultimaSalida = salidas.length ? salidas[salidas.length - 1] : null;
+
                 var estadoClase = 'estado-vigente';
                 var estadoTexto = 'Vigente';
-                if (diasRestantes < 0) { estadoClase = 'estado-vencido'; estadoTexto = 'Vencido'; }
-                else if (diasRestantes <= 15) { estadoClase = 'estado-porvencer'; estadoTexto = 'Por vencer'; }
+                var fechaSalidaTexto = '-';
+                var fechaLimiteTexto = '-';
+                var destinoTexto = '-';
+
+                if (ultimaSalida) {
+                    fechaSalidaTexto = (ultimaSalida.fechaSalida || '').split('T')[0];
+                    fechaLimiteTexto = (ultimaSalida.fechaRetornoEstimada || '').split('T')[0];
+                    destinoTexto = destinoTextos[ultimaSalida.paisDestino] || ultimaSalida.paisDestino;
+
+                    if (ultimaSalida.estado === 'RETORNADO') {
+                        estadoClase = 'estado-vigente'; estadoTexto = 'Retornado';
+                    } else {
+                        var hoy = new Date();
+                        var limite = new Date(ultimaSalida.fechaRetornoEstimada);
+                        var diasRestantes = Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
+                        if (diasRestantes < 0) { estadoClase = 'estado-vencido'; estadoTexto = 'Vencido'; }
+                        else if (diasRestantes <= 15) { estadoClase = 'estado-porvencer'; estadoTexto = 'Por vencer'; }
+                    }
+                }
 
                 var fila = document.createElement('tr');
                 fila.innerHTML =
                     '<td><strong>' + v.patente + '</strong></td>' +
-                    '<td>' + v.destinoTexto + '</td>' +
-                    '<td>' + v.titularTexto + '</td>' +
-                    '<td>' + v.fechaSalida + '</td>' +
-                    '<td>' + v.fechaLimite + '</td>' +
+                    '<td>' + destinoTexto + '</td>' +
+                    '<td>' + (v.propietarioNombre || '') + '</td>' +
+                    '<td>' + fechaSalidaTexto + '</td>' +
+                    '<td>' + fechaLimiteTexto + '</td>' +
                     '<td><span class="estado-pill ' + estadoClase + '">' + estadoTexto + '</span></td>' +
-                    '<td><button class="btn-eliminar" onclick="eliminarVehiculo(' + idx + ')" aria-label="Eliminar registro de ' + v.patente + '">Eliminar</button></td>';
+                    '<td>—</td>';
                 cuerpo.appendChild(fila);
-            });
-        }
-
-        function eliminarVehiculo(idx) {
-            var datos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
-            datos.splice(idx, 1);
-            localStorage.setItem('vehiculos', JSON.stringify(datos));
-            cargarVehiculos();
+            }
         }
 
         function validarPatente(patente) {
@@ -536,24 +602,30 @@
             return /^[A-Z]{2}\d{4}$/.test(patente) || /^[A-Z]{4}\d{2}$/.test(patente);
         }
 
-        function registrarVehiculo() {
-            var patente     = document.getElementById('patente').value.trim();
-            var tipoVeh     = document.getElementById('tipo-vehiculo').value;
-            var titular     = document.getElementById('titular').value;
-            var destino     = document.getElementById('destino').value;
-            var fechaSalida = document.getElementById('fecha-salida').value;
-            var fechaRetorno= document.getElementById('fecha-retorno').value;
+        // ── Registra el vehículo y su salida temporal contra ms-tramites (vía gateway) ──
+        async function registrarVehiculo() {
+            var patente        = document.getElementById('patente').value.trim();
+            var tipoVeh        = document.getElementById('tipo-vehiculo').value;
+            var marca          = document.getElementById('marca').value.trim();
+            var modelo         = document.getElementById('modelo').value.trim();
+            var anio           = document.getElementById('anio').value;
+            var color          = document.getElementById('color').value.trim();
+            var propietarioRut = document.getElementById('propietario-rut').value.trim();
+            var propietarioNom = document.getElementById('propietario-nombre').value.trim();
+            var motivoViaje    = document.getElementById('motivo-viaje').value.trim();
+            var titular        = document.getElementById('titular').value;
+            var destino        = document.getElementById('destino').value;
+            var fechaSalida    = document.getElementById('fecha-salida').value;
+            var fechaRetorno   = document.getElementById('fecha-retorno').value;
 
-            var alerta = document.getElementById('alerta');
-            var exito  = document.getElementById('exito');
-            alerta.style.display = 'none';
-            exito.style.display  = 'none';
+            document.getElementById('alerta').style.display = 'none';
+            document.getElementById('exito').style.display  = 'none';
 
-            if (!patente || !validarPatente(patente)) {
-                mostrarAlerta('Ingresa una patente válida (ej: AB1234 o ABCD12).');
-                return;
-            }
+            if (!patente || !validarPatente(patente)) { mostrarAlerta('Ingresa una patente válida (ej: AB1234 o ABCD12).'); return; }
             if (!tipoVeh) { mostrarAlerta('Selecciona el tipo de vehículo.'); return; }
+            if (!marca || !modelo || !anio || !color) { mostrarAlerta('Completa marca, modelo, año y color del vehículo.'); return; }
+            if (!propietarioRut || !propietarioNom) { mostrarAlerta('Completa el RUT y nombre del propietario/conductor.'); return; }
+            if (!motivoViaje) { mostrarAlerta('Indica el motivo del viaje.'); return; }
             if (!titular) { mostrarAlerta('Selecciona el tipo de titular.'); return; }
             if (!destino) { mostrarAlerta('Selecciona el país de destino.'); return; }
             if (!fechaSalida || !fechaRetorno) { mostrarAlerta('Completa ambas fechas.'); return; }
@@ -564,35 +636,60 @@
 
             var maxDias = limiteDias(destino, titular);
             var diasSolicitados = Math.ceil((new Date(fechaRetorno) - new Date(fechaSalida)) / (1000 * 60 * 60 * 24));
-            var fechaLimite = new Date(fechaSalida);
-            fechaLimite.setDate(fechaLimite.getDate() + maxDias);
-
             if (diasSolicitados > maxDias) {
                 mostrarAlerta('El período solicitado (' + diasSolicitados + ' días) supera el máximo permitido de ' + maxDias + ' días para este caso.');
                 return;
             }
 
-            var destinoTextos = { argentina: '🇦🇷 Argentina', peru: '🇵🇪 Perú', bolivia: '🇧🇴 Bolivia', otro: '🌎 Otro' };
-            var titularTextos = { particular: 'Particular', diplomatico: 'Diplomático' };
+            try {
+                // 1) Crear el vehículo en ms-tramites
+                var respVeh = await fetch(API_GATEWAY + '/tramites/vehiculos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        patente: patente.toUpperCase(),
+                        marca: marca,
+                        modelo: modelo,
+                        anio: parseInt(anio, 10),
+                        color: color,
+                        tipoVehiculo: tipoVeh,
+                        propietarioRut: propietarioRut,
+                        propietarioNombre: propietarioNom
+                    })
+                });
+                if (!respVeh.ok) {
+                    var errVeh = await respVeh.json().catch(function () { return {}; });
+                    mostrarAlerta(errVeh.message || 'No se pudo registrar el vehículo.');
+                    return;
+                }
+                var vehiculoCreado = await respVeh.json();
 
-            var datos = JSON.parse(localStorage.getItem('vehiculos') || '[]');
-            datos.push({
-                patente: patente.toUpperCase(),
-                destinoTexto: destinoTextos[destino],
-                titularTexto: titularTextos[titular],
-                fechaSalida: fechaSalida,
-                fechaLimite: fechaLimite.toISOString().split('T')[0]
-            });
-            localStorage.setItem('vehiculos', JSON.stringify(datos));
+                // 2) Crear la salida temporal asociada a ese vehículo
+                var respSalida = await fetch(API_GATEWAY + '/tramites/salidas-temporales', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        vehiculoId: vehiculoCreado.id,
+                        fechaRetornoEstimada: fechaRetorno + 'T00:00:00',
+                        motivoViaje: motivoViaje,
+                        paisDestino: destino,
+                        conductorRut: propietarioRut,
+                        conductorNombre: propietarioNom
+                    })
+                });
+                if (!respSalida.ok) {
+                    var errSal = await respSalida.json().catch(function () { return {}; });
+                    mostrarAlerta(errSal.message || 'El vehículo se creó, pero no se pudo registrar la salida temporal.');
+                    return;
+                }
 
-            mostrarExito('Vehículo ' + patente.toUpperCase() + ' registrado correctamente. Plazo máximo: ' + maxDias + ' días.');
-            document.getElementById('patente').value = '';
-            document.getElementById('tipo-vehiculo').value = '';
-            document.getElementById('titular').value = '';
-            document.getElementById('destino').value = '';
-            document.getElementById('fecha-salida').value = '';
-            document.getElementById('fecha-retorno').value = '';
-            cargarVehiculos();
+                mostrarExito('Vehículo ' + patente.toUpperCase() + ' registrado correctamente. Plazo máximo: ' + maxDias + ' días.');
+                document.querySelectorAll('.panel-card form input, .panel-card form select').forEach(function (el) { el.value = ''; });
+                cargarVehiculos();
+
+            } catch (e) {
+                mostrarAlerta('No se pudo conectar con el servidor. ¿Está el api-gateway corriendo en el puerto 8090?');
+            }
         }
 
         function mostrarAlerta(msg) {

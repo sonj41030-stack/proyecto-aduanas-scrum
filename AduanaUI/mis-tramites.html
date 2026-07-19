@@ -1,10 +1,70 @@
 <!DOCTYPE html><html lang='es'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Mis Trámites</title><style>
-*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;display:flex;background:#f4f6f9}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.alto .top,.alto .card{border:2px solid #000}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}button{background:#f0a500;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}}
-</style></head><body><div class='side'><h2>Sistema Aduanero</h2><a href='panel.html'>🏠 Panel</a><a href='vehiculos.html'>🚗 Vehículos</a><a href='menores.html'>👶 Menores</a><a href='sag.html'>🌿 SAG</a><a href='dashboard.html'>📊 Dashboard</a><a href='mis-tramites.html'><b>📋 Mis Trámites</b></a></div><div class='main'><div class='top'><h2>📋 Mis Trámites</h2><button onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button></div><div class='card'><table><thead><tr><th>Módulo</th><th>Detalle</th><th>Estado</th></tr></thead><tbody id='tb'></tbody></table></div></div><script>
-const tb=document.getElementById('tb');
-function add(mod,txt){tb.innerHTML+=`<tr><td>${mod}</td><td>${txt}</td><td>Registrado</td></tr>`;}
-(JSON.parse(localStorage.getItem('vehiculos')||'[]')).forEach(v=>add('Vehículo',v.patente||v.n||'Registro'));
-(JSON.parse(localStorage.getItem('menores')||'[]')).forEach(m=>add('Menor',m.n||m.nombre||'Registro'));
-(JSON.parse(localStorage.getItem('sag')||'[]')).forEach(s=>add('SAG',s.n||s.nom||'Declaración'));
-if(tb.innerHTML==='')tb.innerHTML="<tr><td colspan='3'>No existen trámites registrados.</td></tr>";
+*{box-sizing:border-box;font-family:Segoe UI,sans-serif}body{margin:0;display:flex;background:#f4f6f9}.side{width:250px;background:#0a3d6b;color:#fff;min-height:100vh;padding:20px}.side a{display:block;color:#fff;text-decoration:none;padding:10px 0}.main{flex:1;padding:20px}.top,.card{background:#fff;border-radius:10px;padding:20px;margin-bottom:20px}.top{display:flex;justify-content:space-between}.alto .top,.alto .card{border:2px solid #000}table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}button{background:#f0a500;border:0;padding:8px 12px;border-radius:8px;cursor:pointer}.aviso{color:#b85c00;font-size:13px}@media(max-width:700px){body{display:block}.side{width:100%;min-height:auto}}
+</style></head><body>
+<div class='side'><h2>Sistema Aduanero</h2>
+<a href='panel.html'>🏠 Panel</a>
+<a href='vehiculos.html'>🚗 Vehículos</a>
+<a href='menores.html'>👶 Menores</a>
+<a href='sag.html'>🌿 SAG</a>
+<a href='dashboard.html'>📊 Dashboard</a>
+<a href='mis-tramites.html'><b>📋 Mis Trámites</b></a>
+<a href='estado-pdi.html'>🛡 Estado PDI</a>
+</div>
+<div class='main'>
+<div class='top'><h2>📋 Mis Trámites</h2><button onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button></div>
+<div class='card'>
+<p id="aviso" class="aviso"></p>
+<table><thead><tr><th>Módulo</th><th>Detalle</th><th>Estado</th></tr></thead><tbody id='tb'><tr><td colspan="3">Cargando…</td></tr></tbody></table>
+</div>
+</div>
+<script>
+var API_GATEWAY = 'http://localhost:8090';
+var tb = document.getElementById('tb');
+var avisos = [];
+
+function add(mod, txt, estado) {
+    tb.innerHTML += '<tr><td>' + mod + '</td><td>' + txt + '</td><td>' + (estado || 'Registrado') + '</td></tr>';
+}
+
+async function cargarVehiculosYViajeros() {
+    var vehiculos = await fetch(API_GATEWAY + '/tramites/vehiculos').then(function (r) { return r.ok ? r.json() : []; });
+    vehiculos.forEach(function (v) { add('Vehículo', v.patente + ' — ' + (v.propietarioNombre || ''), 'Registrado'); });
+
+    for (var i = 0; i < vehiculos.length; i++) {
+        var salidas = await fetch(API_GATEWAY + '/tramites/salidas-temporales/vehiculo/' + vehiculos[i].id)
+            .then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+        for (var j = 0; j < salidas.length; j++) {
+            var menores = await fetch(API_GATEWAY + '/tramites/viajeros/salida/' + salidas[j].id + '/menores')
+                .then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+            menores.forEach(function (m) {
+                add('Menor', m.nombreCompleto + ' (' + vehiculos[i].patente + ')', m.validada ? 'Validado' : 'Pendiente de validación');
+            });
+        }
+    }
+}
+
+async function cargarSag() {
+    var declaraciones = await fetch(API_GATEWAY + '/sag').then(function (r) { return r.ok ? r.json() : []; });
+    declaraciones.forEach(function (d) { add('SAG', d.pasajeroNombre + ' — ' + d.paisProcedencia, d.estado); });
+}
+
+async function cargarPdi() {
+    var consultas = await fetch(API_GATEWAY + '/pdi/consultas').then(function (r) { return r.ok ? r.json() : []; });
+    consultas.forEach(function (c) { add('Consulta PDI', c.nombreConsultado + ' — ' + c.documento, c.estado); });
+}
+
+async function cargarTodo() {
+    tb.innerHTML = '';
+    var resultados = await Promise.allSettled([cargarVehiculosYViajeros(), cargarSag(), cargarPdi()]);
+    var nombres = ['ms-tramites', 'ms-sag', 'ms-pdi'];
+    resultados.forEach(function (r, i) {
+        if (r.status === 'rejected') avisos.push(nombres[i] + ': sin conexión');
+    });
+    if (tb.innerHTML === '') tb.innerHTML = "<tr><td colspan='3'>No existen trámites registrados.</td></tr>";
+    document.getElementById('aviso').textContent = avisos.length
+        ? 'Algunos servicios no respondieron (' + avisos.join(', ') + '). ¿Están corriendo api-gateway y los microservicios?'
+        : '';
+}
+
+cargarTodo();
 </script></body></html>

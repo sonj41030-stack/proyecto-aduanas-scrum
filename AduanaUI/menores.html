@@ -15,6 +15,11 @@ label{font-weight:600;font-size:14px}input,select{width:100%;padding:10px;margin
 button{background:#0a3d6b;color:#fff;border:0;padding:12px 18px;border-radius:8px;cursor:pointer}
 table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left}
 .btn-contraste{background:#f0a500;color:#000}.alto{background:#000}.alto .card,.alto .top{border:2px solid #000}
+.aviso{background:#fff3cd;color:#856404;padding:12px;border-radius:8px;margin-bottom:15px}
+.pill{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.pill-si{background:#d4edda;color:#155724}.pill-no{background:#f8d7da;color:#721c24}.pill-pend{background:#fff3cd;color:#856404}
+fieldset{border:1px solid #ddd;border-radius:8px;padding:15px;margin-top:15px}
+legend{font-weight:600;padding:0 8px}
 @media(max-width:700px){body{display:block}.sidebar{width:100%;min-height:auto}.grid{grid-template-columns:1fr}}
 </style></head>
 <body>
@@ -24,46 +29,230 @@ table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ddd;pad
 <a href="vehiculos.html">🚗 Vehículos</a>
 <a href="menores.html"><b>👶 Menores</b></a>
 <a href="sag.html">🌿 SAG</a>
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="mis-tramites.html">📋 Mis Trámites</a>
+<a href="estado-pdi.html">🛡 Estado PDI</a>
 </div>
 <div class="main">
-<div class="top"><h2>Registro de Menores</h2><button class="btn-contraste" onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button></div>
+<div class="top"><h2>Registro de Viajeros</h2><button class="btn-contraste" onclick="document.body.classList.toggle('alto')">👁 Alto contraste</button></div>
+
 <div class="card">
-<h3>Registrar salida</h3>
+<h3>1. Selecciona el vehículo y la salida temporal</h3>
+<div class="grid">
+<div><label>Vehículo</label><select id="vehiculo" onchange="cargarSalidas()"><option value="">Seleccione un vehículo…</option></select></div>
+<div><label>Salida temporal</label><select id="salida" onchange="cargarViajeros()"><option value="">Seleccione una salida…</option></select></div>
+</div>
+<p id="msgSalidas" style="color:#b85c00;margin-top:10px"></p>
+</div>
+
+<div class="card">
+<h3>2. Registrar el paso de un viajero</h3>
 <div class="grid">
 <div><label>Nombre completo</label><input id="nombre"></div>
-<div><label>Fecha nacimiento</label><input type="date" id="nac"></div>
-<div><label>Documento</label><input id="doc"></div>
-<div><label>Nacionalidad</label><input id="nacio"></div>
-<div><label>Destino</label><select id="dest"><option>Argentina</option><option>Perú</option><option>Bolivia</option><option>Otro</option></select></div>
-<div><label>Fecha salida</label><input type="date" id="sal"></div>
-<div><label>Acompañante</label><select id="acom"><option>Ambos padres</option><option>Madre</option><option>Padre</option><option>Tutor legal</option><option>Otro adulto</option><option>Viaja solo</option></select></div>
-<div><label>Autorización notarial</label><select id="aut"><option>Sí</option><option>No</option></select></div>
-</div><br>
-<button onclick="guardar()">Registrar menor</button>
+<div><label>RUT</label><input id="rut" placeholder="12.345.678-9"></div>
+<div><label>Fecha nacimiento</label><input type="date" id="nac" onchange="chequearEdad()"></div>
+<div><label>Tipo de viajero</label><select id="tipoViajero"><option value="PASAJERO">Pasajero</option><option value="CONDUCTOR">Conductor</option></select></div>
+</div>
+
+<div id="avisoMenor" class="aviso" style="display:none">⚠️ Este viajero es menor de edad. Se requiere la autorización notarial para salir del país sin ambos padres.</div>
+
+<fieldset id="datosNotariales" style="display:none">
+<legend>Autorización notarial (obligatoria para menores)</legend>
+<div class="grid">
+<div><label>Nombre autorizante</label><input id="nombreAutorizante"></div>
+<div><label>RUT autorizante</label><input id="rutAutorizante"></div>
+<div><label>Parentesco</label><input id="parentescoAutorizante" placeholder="Padre, madre, tutor…"></div>
+<div><label>N° escritura notarial</label><input id="numeroEscrituraNotarial"></div>
+<div><label>Notaría</label><input id="notariaNombre"></div>
+<div><label>Ciudad de la notaría</label><input id="ciudadNotaria"></div>
+<div><label>Fecha autorización</label><input type="date" id="fechaAutorizacion"></div>
+<div><label>URL documento (opcional)</label><input id="urlDocumentoAutorizacion" placeholder="https://…"></div>
+</div>
+</fieldset>
+
+<br><button onclick="guardar()">Registrar viajero</button>
 <p id="msg"></p>
 </div>
+
 <div class="card">
-<h3>Menores registrados</h3>
-<table><thead><tr><th>Nombre</th><th>Destino</th><th>Salida</th><th>Acompañante</th><th>Acción</th></tr></thead><tbody id="tb"></tbody></table>
+<h3>Viajeros de la salida seleccionada</h3>
+<table><thead><tr><th>Nombre</th><th>RUT</th><th>Tipo</th><th>Menor</th><th>Autorización</th><th>Acción</th></tr></thead><tbody id="tb"><tr><td colspan="6">Selecciona una salida temporal para ver sus viajeros.</td></tr></tbody></table>
 </div>
 </div>
+
 <script>
-function cargar(){
-let d=JSON.parse(localStorage.getItem('menores')||'[]'),tb=document.getElementById('tb');tb.innerHTML='';
-d.forEach((x,i)=>tb.innerHTML+=`<tr><td>${x.n}</td><td>${x.des}</td><td>${x.s}</td><td>${x.a}</td><td><button onclick="del(${i})">Eliminar</button></td></tr>`);
+var API_GATEWAY = 'http://localhost:8090';
+var salidasCache = [];
+
+function calcularEdad(fechaNacimiento){
+    var hoy = new Date();
+    var nacimiento = new Date(fechaNacimiento);
+    var edad = hoy.getFullYear() - nacimiento.getFullYear();
+    var mes = hoy.getMonth() - nacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
+    return edad;
 }
-function guardar(){
-let n=nombre.value.trim(),docv=doc.value.trim(),s=sal.value;
-if(!n||!docv||!s){msg.textContent='Complete los campos obligatorios';msg.style.color='red';return;}
-if(acom.value!='Ambos padres'&&aut.value=='No'){msg.textContent='Se requiere autorización notarial';msg.style.color='red';return;}
-let d=JSON.parse(localStorage.getItem('menores')||'[]');
-d.push({n:n,des:dest.value,s:s,a:acom.value});
-localStorage.setItem('menores',JSON.stringify(d));
-msg.textContent='Registro exitoso';msg.style.color='green';
-document.querySelectorAll('input').forEach(i=>i.value='');
-cargar();
+
+function esMenor(){
+    var nac = document.getElementById('nac').value;
+    if (!nac) return false;
+    return calcularEdad(nac) < 18;
 }
-function del(i){let d=JSON.parse(localStorage.getItem('menores')||'[]');d.splice(i,1);localStorage.setItem('menores',JSON.stringify(d));cargar();}
-cargar();
+
+function chequearEdad(){
+    var menor = esMenor();
+    document.getElementById('avisoMenor').style.display = menor ? 'block' : 'none';
+    document.getElementById('datosNotariales').style.display = menor ? 'block' : 'none';
+}
+
+async function cargarVehiculos(){
+    var sel = document.getElementById('vehiculo');
+    try {
+        var resp = await fetch(API_GATEWAY + '/tramites/vehiculos');
+        if (!resp.ok) throw new Error('no ok');
+        var vehiculos = await resp.json();
+        vehiculos.forEach(function (v) {
+            var opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = v.patente + ' — ' + (v.propietarioNombre || '');
+            sel.appendChild(opt);
+        });
+    } catch (e) {
+        document.getElementById('msgSalidas').textContent = 'No se pudo conectar con ms-tramites (¿api-gateway y ms-tramites están corriendo?).';
+    }
+}
+
+async function cargarSalidas(){
+    var vehiculoId = document.getElementById('vehiculo').value;
+    var selSalida = document.getElementById('salida');
+    selSalida.innerHTML = '<option value="">Seleccione una salida…</option>';
+    document.getElementById('msgSalidas').textContent = '';
+    salidasCache = [];
+    if (!vehiculoId) { cargarViajeros(); return; }
+
+    try {
+        var resp = await fetch(API_GATEWAY + '/tramites/salidas-temporales/vehiculo/' + vehiculoId);
+        if (!resp.ok) throw new Error('no ok');
+        salidasCache = await resp.json();
+        if (!salidasCache.length) {
+            document.getElementById('msgSalidas').textContent = 'Este vehículo no tiene salidas temporales registradas. Regístrala primero en la sección Vehículos.';
+            return;
+        }
+        salidasCache.forEach(function (s) {
+            var opt = document.createElement('option');
+            opt.value = s.id;
+            var fecha = (s.fechaSalida || '').split('T')[0];
+            opt.textContent = fecha + ' → ' + s.paisDestino + ' (' + s.estado + ')';
+            selSalida.appendChild(opt);
+        });
+    } catch (e) {
+        document.getElementById('msgSalidas').textContent = 'No se pudieron cargar las salidas temporales de este vehículo.';
+    }
+    cargarViajeros();
+}
+
+async function cargarViajeros(){
+    var salidaId = document.getElementById('salida').value;
+    var tb = document.getElementById('tb');
+    if (!salidaId) { tb.innerHTML = '<tr><td colspan="6">Selecciona una salida temporal para ver sus viajeros.</td></tr>'; return; }
+
+    try {
+        var resp = await fetch(API_GATEWAY + '/tramites/viajeros/salida/' + salidaId);
+        if (!resp.ok) throw new Error('no ok');
+        var viajeros = await resp.json();
+        if (!viajeros.length) { tb.innerHTML = '<tr><td colspan="6">Aún no hay viajeros registrados para esta salida.</td></tr>'; return; }
+        tb.innerHTML = '';
+        viajeros.forEach(function (v) {
+            var pillMenor = v.esMenorEdad ? '<span class="pill pill-si">Sí</span>' : '<span class="pill pill-no">No</span>';
+            var pillAut = !v.esMenorEdad ? '—' :
+                (v.validada ? '<span class="pill pill-si">Validada</span>' : '<span class="pill pill-pend">Pendiente</span>');
+            var accion = (v.esMenorEdad && !v.validada)
+                ? '<button onclick="validar(' + v.id + ')">Validar</button>' : '—';
+            tb.innerHTML += '<tr><td>' + v.nombreCompleto + '</td><td>' + v.rut + '</td><td>' + v.tipoViajero +
+                '</td><td>' + pillMenor + '</td><td>' + pillAut + '</td><td>' + accion + '</td></tr>';
+        });
+    } catch (e) {
+        tb.innerHTML = '<tr><td colspan="6">No se pudieron cargar los viajeros de esta salida.</td></tr>';
+    }
+}
+
+async function validar(id){
+    try {
+        var resp = await fetch(API_GATEWAY + '/tramites/viajeros/' + id + '/validar', { method: 'PATCH' });
+        if (!resp.ok) { alert('No se pudo validar la autorización.'); return; }
+        cargarViajeros();
+    } catch (e) { alert('No se pudo conectar con el servidor.'); }
+}
+
+async function guardar(){
+    var msg = document.getElementById('msg');
+    var salidaId = document.getElementById('salida').value;
+    var nombre = document.getElementById('nombre').value.trim();
+    var rut = document.getElementById('rut').value.trim();
+    var nac = document.getElementById('nac').value;
+    var tipoViajero = document.getElementById('tipoViajero').value;
+
+    if (!salidaId) { msg.textContent = 'Selecciona primero un vehículo y su salida temporal.'; msg.style.color = 'red'; return; }
+    if (!nombre || !rut || !nac) { msg.textContent = 'Complete nombre, RUT y fecha de nacimiento.'; msg.style.color = 'red'; return; }
+
+    var payload = {
+        salidaTemporalId: parseInt(salidaId, 10),
+        nombreCompleto: nombre,
+        rut: rut,
+        fechaNacimiento: nac,
+        tipoViajero: tipoViajero
+    };
+
+    if (esMenor()) {
+        var nombreAutorizante = document.getElementById('nombreAutorizante').value.trim();
+        var rutAutorizante = document.getElementById('rutAutorizante').value.trim();
+        var parentescoAutorizante = document.getElementById('parentescoAutorizante').value.trim();
+        var numeroEscrituraNotarial = document.getElementById('numeroEscrituraNotarial').value.trim();
+        var notariaNombre = document.getElementById('notariaNombre').value.trim();
+        var ciudadNotaria = document.getElementById('ciudadNotaria').value.trim();
+        var fechaAutorizacion = document.getElementById('fechaAutorizacion').value;
+
+        if (!nombreAutorizante || !rutAutorizante || !parentescoAutorizante || !numeroEscrituraNotarial || !notariaNombre || !ciudadNotaria || !fechaAutorizacion) {
+            msg.textContent = 'Es menor de edad: complete todos los datos de la autorización notarial.';
+            msg.style.color = 'red';
+            return;
+        }
+
+        payload.nombreAutorizante = nombreAutorizante;
+        payload.rutAutorizante = rutAutorizante;
+        payload.parentescoAutorizante = parentescoAutorizante;
+        payload.numeroEscrituraNotarial = numeroEscrituraNotarial;
+        payload.notariaNombre = notariaNombre;
+        payload.ciudadNotaria = ciudadNotaria;
+        payload.fechaAutorizacion = fechaAutorizacion;
+        payload.urlDocumentoAutorizacion = document.getElementById('urlDocumentoAutorizacion').value.trim();
+    }
+
+    try {
+        var resp = await fetch(API_GATEWAY + '/tramites/viajeros', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!resp.ok) {
+            var err = await resp.json().catch(function () { return {}; });
+            msg.textContent = (err.errores && Object.values(err.errores)[0]) || err.message || 'No se pudo registrar el viajero.';
+            msg.style.color = 'red';
+            return;
+        }
+        msg.textContent = 'Viajero registrado correctamente.';
+        msg.style.color = 'green';
+        ['nombre', 'rut', 'nac', 'nombreAutorizante', 'rutAutorizante', 'parentescoAutorizante',
+         'numeroEscrituraNotarial', 'notariaNombre', 'ciudadNotaria', 'fechaAutorizacion', 'urlDocumentoAutorizacion']
+            .forEach(function (id) { document.getElementById(id).value = ''; });
+        chequearEdad();
+        cargarViajeros();
+    } catch (e) {
+        msg.textContent = 'No se pudo conectar con el servidor. ¿Está el api-gateway corriendo en el puerto 8090?';
+        msg.style.color = 'red';
+    }
+}
+
+cargarVehiculos();
 </script>
 </body></html>

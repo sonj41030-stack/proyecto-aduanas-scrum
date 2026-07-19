@@ -354,8 +354,11 @@
             }
         });
 
-        // ── Validar y procesar login ──
-        function intentarLogin() {
+        // ── URL del API Gateway (microservicios del equipo) ──
+        var API_GATEWAY = 'http://localhost:8090';
+
+        // ── Validar y procesar login contra ms-auth (vía gateway) ──
+        async function intentarLogin() {
             var tipoDoc = document.getElementById('tipo-doc').value;
             var numDoc  = document.getElementById('numero-doc').value.trim();
             var pass    = document.getElementById('pass').value.trim();
@@ -386,25 +389,38 @@
                 return;
             }
 
-            var credenciales = [
-                { tipo: 'rut',      doc: '12.345.678-9', pass: '1234' },
-                { tipo: 'rut',      doc: '20.418.441-0', pass: 'Chelseagrin666' },
-                { tipo: 'dni-arg',  doc: '12345678',     pass: '1234' },
-                { tipo: 'pasaporte',doc: 'AB123456',     pass: '1234' }
-            ];
+            try {
+                var respuesta = await fetch(API_GATEWAY + '/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // ms-auth guarda el "username" con el número de documento (ver registro.html)
+                    body: JSON.stringify({ username: numDoc, password: pass })
+                });
 
-            var encontrado = credenciales.find(function(c) {
-                return c.tipo === tipoDoc && c.doc === numDoc && c.pass === pass;
-            });
+                if (!respuesta.ok) {
+                    var err = await respuesta.json().catch(function () { return {}; });
+                    alertaTexto.textContent = err.error || 'Documento o contraseña incorrectos. Intenta de nuevo.';
+                    alerta.style.display = 'block';
+                    return;
+                }
 
-            if (encontrado) {
+                var datos = await respuesta.json();
+
+                // Guardamos el token y datos de sesión para que el resto del sitio los use
+                localStorage.setItem('token',    datos.token);
+                localStorage.setItem('username', datos.username);
+                localStorage.setItem('rol',      datos.rol);
+                if (!localStorage.getItem('nombre')) {
+                    localStorage.setItem('nombre', datos.username);
+                }
+
                 exito.style.display = 'block';
-                // Redirigir al panel después de 1 segundo
                 setTimeout(function() {
                     window.location.href = 'panel.html';
                 }, 1000);
-            } else {
-                alertaTexto.textContent = 'Documento o contraseña incorrectos. Intenta de nuevo.';
+
+            } catch (e) {
+                alertaTexto.textContent = 'No se pudo conectar con el servidor. ¿Está el api-gateway corriendo en el puerto 8090?';
                 alerta.style.display = 'block';
             }
         }
